@@ -87,6 +87,9 @@ const playerImage = new Image();
 playerImage.src = "player.png";
 playerImage.onload = function() {
     draw();
+}
+
+const scoreDisplay = document.getElementById("score");
 
 const scoreDisplay = document.getElementById("score");
 const startButton = document.getElementById("start");
@@ -380,6 +383,8 @@ function draw() {
         player.width,
         player.height
     );
+       
+    }
 
 
     /* OBSTACLES */
