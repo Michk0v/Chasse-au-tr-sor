@@ -7,7 +7,6 @@
 <title>Le jeu</title>
 
 <style>
-
     * {
         box-sizing: border-box;
     }
@@ -86,7 +85,6 @@
         font-size: 14px;
         color: #666;
     }
-
 </style>
 </head>
 
@@ -100,22 +98,12 @@
         Saute les obstacles et cours à travers Montréal !
     </div>
 
-    <canvas
-        id="game"
-        width="800"
-        height="260">
-    </canvas>
+    <!-- Le canvas est maintenant beaucoup plus haut -->
+    <canvas id="game" width="800" height="500"></canvas>
 
     <div class="info">
-
-        <span id="score">
-            Score : 0
-        </span>
-
-        <button id="start">
-            Commencer
-        </button>
-
+        <span id="score">Score : 0</span>
+        <button id="start">Commencer</button>
     </div>
 
     <div class="hint">
@@ -127,812 +115,713 @@
 
 <script>
 
-    /* =========================================================
-       CANVAS
-    ========================================================= */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
 
-    const WIDTH = canvas.width;
-    const HEIGHT = canvas.height;
+/*
+=========================================================
+SOL
 
-    const GROUND = 222;
+Cette valeur détermine exactement où les pieds
+du personnage et les obstacles touchent le décor.
+=========================================================
+*/
 
-
-    /* =========================================================
-       IMAGES
-    ========================================================= */
-
-    const playerImage = new Image();
-    playerImage.src = "player.png";
-
-    const backgroundImage = new Image();
-    backgroundImage.src = "background.jpg";
+const GROUND = 440;
 
 
-    /* =========================================================
-       ELEMENTS HTML
-    ========================================================= */
+/*
+=========================================================
+IMAGES
+=========================================================
+*/
 
-    const scoreDisplay = document.getElementById("score");
-    const startButton = document.getElementById("start");
+const playerImage = new Image();
+playerImage.src = "player.png";
 
-
-    /* =========================================================
-       VARIABLES DU JEU
-    ========================================================= */
-
-    let player;
-    let obstacles = [];
-
-    let running = false;
-    let gameOver = false;
-
-    let score = 0;
-    let speed = 5;
-    let obstacleTimer = 0;
-
-    let lastTime = 0;
+const backgroundImage = new Image();
+backgroundImage.src = "background.jpg";
 
 
-    /* =========================================================
-       JOUEUR
-    ========================================================= */
+/*
+=========================================================
+HTML
+=========================================================
+*/
 
-    function resetPlayer() {
+const scoreDisplay = document.getElementById("score");
+const startButton = document.getElementById("start");
 
-        player = {
-            x: 80,
-            y: GROUND - 68,
-            width: 23,
-            height: 68,
-            velocityY: 0,
-            jumping: false
-        };
 
+/*
+=========================================================
+VARIABLES
+=========================================================
+*/
+
+let player;
+let obstacles = [];
+
+let running = false;
+let gameOver = false;
+
+let score = 0;
+let speed = 5;
+let obstacleTimer = 0;
+
+let lastTime = 0;
+
+
+/*
+=========================================================
+JOUEUR
+=========================================================
+*/
+
+function resetPlayer() {
+
+    player = {
+        x: 85,
+
+        /*
+        Le personnage est maintenant plus grand.
+        Ses pieds sont exactement sur GROUND.
+        */
+
+        y: GROUND - 115,
+
+        width: 39,
+        height: 115,
+
+        velocityY: 0,
+        jumping: false
+    };
+}
+
+
+/*
+=========================================================
+RESET
+=========================================================
+*/
+
+function resetGame() {
+
+    resetPlayer();
+
+    obstacles = [];
+
+    score = 0;
+    speed = 5;
+    obstacleTimer = 0;
+
+    gameOver = false;
+    running = false;
+
+    scoreDisplay.textContent = "Score : 0";
+    startButton.textContent = "Commencer";
+
+    draw();
+}
+
+
+/*
+=========================================================
+DEMARRER
+=========================================================
+*/
+
+function startGame() {
+
+    resetPlayer();
+
+    obstacles = [];
+
+    score = 0;
+    speed = 5;
+    obstacleTimer = 0;
+
+    gameOver = false;
+    running = true;
+
+    lastTime = performance.now();
+
+    startButton.textContent = "Recommencer";
+
+    requestAnimationFrame(gameLoop);
+}
+
+
+/*
+=========================================================
+SAUT
+=========================================================
+*/
+
+function jump() {
+
+    if (!running) {
+        startGame();
+        return;
+    }
+
+    if (!player.jumping) {
+
+        /*
+        Saut un peu plus haut pour tenir compte
+        du nouveau format du jeu.
+        */
+
+        player.velocityY = -15;
+
+        player.jumping = true;
+    }
+}
+
+
+/*
+=========================================================
+OBSTACLES
+=========================================================
+*/
+
+function createObstacle() {
+
+    const width = 28 + Math.random() * 22;
+    const height = 45 + Math.random() * 35;
+
+    obstacles.push({
+        x: WIDTH + 10,
+        y: GROUND - height,
+        width: width,
+        height: height
+    });
+}
+
+
+/*
+=========================================================
+COLLISIONS
+=========================================================
+*/
+
+function checkCollision(a, b) {
+
+    const paddingX = 8;
+    const paddingY = 5;
+
+    return (
+        a.x + paddingX < b.x + b.width &&
+        a.x + a.width - paddingX > b.x &&
+        a.y + paddingY < b.y + b.height &&
+        a.y + a.height - paddingY > b.y
+    );
+}
+
+
+/*
+=========================================================
+UPDATE
+=========================================================
+*/
+
+function update(delta) {
+
+    if (!running) {
+        return;
     }
 
 
-    /* =========================================================
-       RESET
-    ========================================================= */
+    /* Gravité */
 
-    function resetGame() {
+    player.velocityY += 0.75;
+    player.y += player.velocityY;
 
-        resetPlayer();
 
-        obstacles = [];
+    /* Retour au trottoir */
 
-        score = 0;
-        speed = 5;
-        obstacleTimer = 0;
+    if (player.y >= GROUND - player.height) {
 
-        gameOver = false;
-        running = false;
+        player.y = GROUND - player.height;
 
-        scoreDisplay.textContent = "Score : 0";
-        startButton.textContent = "Commencer";
+        player.velocityY = 0;
+        player.jumping = false;
+    }
+
+
+    /* Accélération progressive */
+
+    speed += 0.0007 * delta;
+
+
+    /* Apparition des obstacles */
+
+    obstacleTimer -= delta;
+
+    if (obstacleTimer <= 0) {
+
+        createObstacle();
+
+        obstacleTimer =
+            1000 + Math.random() * 700;
+    }
+
+
+    /* Déplacement */
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+
+        const obstacle = obstacles[i];
+
+        obstacle.x -=
+            speed * (delta / 16.67);
+
+
+        if (checkCollision(player, obstacle)) {
+
+            endGame();
+            return;
+        }
+
+
+        if (obstacle.x + obstacle.width < 0) {
+
+            obstacles.splice(i, 1);
+        }
+    }
+
+
+    /* Score */
+
+    score += delta * 0.01;
+
+    scoreDisplay.textContent =
+        "Score : " + Math.floor(score);
+}
+
+
+/*
+=========================================================
+GAME OVER
+=========================================================
+*/
+
+function endGame() {
+
+    running = false;
+    gameOver = true;
+
+    startButton.textContent = "Recommencer";
+
+    draw();
+}
+
+
+/*
+=========================================================
+DECOR
+
+Cette version montre quasiment toute l'image,
+sans la recadrer agressivement.
+=========================================================
+*/
+
+function drawBackground() {
+
+    if (
+        backgroundImage.complete &&
+        backgroundImage.naturalWidth > 0
+    ) {
+
+        /*
+        On affiche toute l'image dans le canvas.
+
+        Ton image est proche du ratio du nouveau canvas,
+        donc on perd très peu de décor.
+        */
+
+        ctx.drawImage(
+            backgroundImage,
+            0,
+            0,
+            WIDTH,
+            HEIGHT
+        );
+
+    } else {
+
+        ctx.fillStyle = "#eee7dc";
+
+        ctx.fillRect(
+            0,
+            0,
+            WIDTH,
+            HEIGHT
+        );
+    }
+
+
+    /*
+    Voile très léger.
+
+    Je l'ai réduit par rapport à la version précédente
+    pour conserver davantage les couleurs du décor.
+    */
+
+    ctx.fillStyle =
+        "rgba(255,255,255,0.10)";
+
+    ctx.fillRect(
+        0,
+        0,
+        WIDTH,
+        HEIGHT
+    );
+}
+
+
+/*
+=========================================================
+PERSONNAGE
+=========================================================
+*/
+
+function drawPlayer() {
+
+    if (
+        playerImage.complete &&
+        playerImage.naturalWidth > 0
+    ) {
+
+        ctx.save();
+
+        /*
+        Halo blanc discret pour détacher
+        la photo du décor.
+        */
+
+        ctx.shadowColor =
+            "rgba(255,255,255,1)";
+
+        ctx.shadowBlur = 6;
+
+        ctx.drawImage(
+            playerImage,
+            player.x,
+            player.y,
+            player.width,
+            player.height
+        );
+
+        ctx.restore();
+
+    } else {
+
+        ctx.fillStyle = "#222";
+
+        ctx.fillRect(
+            player.x,
+            player.y,
+            player.width,
+            player.height
+        );
+    }
+}
+
+
+/*
+=========================================================
+OBSTACLES
+=========================================================
+*/
+
+function drawObstacles() {
+
+    for (const obstacle of obstacles) {
+
+        /*
+        Contour clair
+        */
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.95)";
+
+        ctx.fillRect(
+            obstacle.x - 3,
+            obstacle.y - 3,
+            obstacle.width + 6,
+            obstacle.height + 3
+        );
+
+
+        /*
+        Obstacle
+        */
+
+        ctx.fillStyle = "#181818";
+
+        ctx.fillRect(
+            obstacle.x,
+            obstacle.y,
+            obstacle.width,
+            obstacle.height
+        );
+    }
+}
+
+
+/*
+=========================================================
+DESSIN GENERAL
+=========================================================
+*/
+
+function draw() {
+
+    ctx.clearRect(
+        0,
+        0,
+        WIDTH,
+        HEIGHT
+    );
+
+
+    /* Montréal */
+
+    drawBackground();
+
+
+    /*
+    Ligne très discrète au niveau du sol.
+
+    Contrairement à la version précédente,
+    je SUPPRIME la grosse bande noire du bas :
+    elle cachait une partie du décor et empêchait
+    le personnage de sembler réellement marcher dedans.
+    */
+
+    ctx.fillStyle =
+        "rgba(255,255,255,0.45)";
+
+    ctx.fillRect(
+        0,
+        GROUND,
+        WIDTH,
+        2
+    );
+
+
+    /* Personnage */
+
+    drawPlayer();
+
+
+    /* Obstacles */
+
+    drawObstacles();
+
+
+    /*
+    =====================================================
+    DEPART
+    =====================================================
+    */
+
+    if (!running && !gameOver) {
+
+        /*
+        Petit cartouche plutôt qu'un voile
+        sur toute l'image.
+        */
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.82)";
+
+        ctx.fillRect(
+            WIDTH / 2 - 165,
+            22,
+            330,
+            48
+        );
+
+        ctx.fillStyle = "#111";
+
+        ctx.font = "bold 23px Arial";
+
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+            "Clique sur « Commencer »",
+            WIDTH / 2,
+            54
+        );
+
+        ctx.textAlign = "left";
+    }
+
+
+    /*
+    =====================================================
+    GAME OVER
+    =====================================================
+    */
+
+    if (gameOver) {
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.82)";
+
+        ctx.fillRect(
+            WIDTH / 2 - 150,
+            HEIGHT / 2 - 70,
+            300,
+            120
+        );
+
+        ctx.fillStyle = "#222";
+
+        ctx.textAlign = "center";
+
+        ctx.font = "bold 32px Arial";
+
+        ctx.fillText(
+            "GAME OVER",
+            WIDTH / 2,
+            HEIGHT / 2 - 15
+        );
+
+        ctx.font = "18px Arial";
+
+        ctx.fillText(
+            "Score : " + Math.floor(score),
+            WIDTH / 2,
+            HEIGHT / 2 + 20
+        );
+
+        ctx.textAlign = "left";
+    }
+}
+
+
+/*
+=========================================================
+BOUCLE
+=========================================================
+*/
+
+function gameLoop(timestamp) {
+
+    if (!running) {
 
         draw();
-
+        return;
     }
 
+    let delta =
+        timestamp - lastTime;
 
-    /* =========================================================
-       DEMARRER
-    ========================================================= */
+    lastTime = timestamp;
 
-    function startGame() {
+    if (delta > 50) {
+        delta = 50;
+    }
 
-        resetPlayer();
+    update(delta);
 
-        obstacles = [];
+    draw();
 
-        score = 0;
-        speed = 5;
-        obstacleTimer = 0;
-
-        gameOver = false;
-        running = true;
-
-        lastTime = performance.now();
-
-        startButton.textContent = "Recommencer";
+    if (running) {
 
         requestAnimationFrame(gameLoop);
-
     }
+}
 
 
-    /* =========================================================
-       SAUT
-    ========================================================= */
+/*
+=========================================================
+CONTROLES
+=========================================================
+*/
 
-    function jump() {
-
-        if (!running) {
-
-            startGame();
-            return;
-
-        }
-
-        if (!player.jumping) {
-
-            player.velocityY = -11.5;
-            player.jumping = true;
-
-        }
-
+startButton.addEventListener(
+    "click",
+    function() {
+        startGame();
     }
+);
 
 
-    /* =========================================================
-       OBSTACLES
-    ========================================================= */
-
-    function createObstacle() {
-
-        const width = 20 + Math.random() * 18;
-        const height = 30 + Math.random() * 28;
-
-        obstacles.push({
-            x: WIDTH + 10,
-            y: GROUND - height,
-            width: width,
-            height: height
-        });
-
-    }
-
-
-    /* =========================================================
-       COLLISION
-    ========================================================= */
-
-    function checkCollision(a, b) {
-
-        const paddingX = 5;
-        const paddingY = 3;
-
-        return (
-
-            a.x + paddingX < b.x + b.width &&
-
-            a.x + a.width - paddingX > b.x &&
-
-            a.y + paddingY < b.y + b.height &&
-
-            a.y + a.height - paddingY > b.y
-
-        );
-
-    }
-
-
-    /* =========================================================
-       MISE A JOUR
-    ========================================================= */
-
-    function update(delta) {
-
-        if (!running) {
-            return;
-        }
-
-
-        /* Gravité */
-
-        player.velocityY += 0.62;
-        player.y += player.velocityY;
-
-
-        /* Retour au sol */
-
-        if (player.y >= GROUND - player.height) {
-
-            player.y = GROUND - player.height;
-
-            player.velocityY = 0;
-            player.jumping = false;
-
-        }
-
-
-        /* Accélération */
-
-        speed += 0.0007 * delta;
-
-
-        /* Apparition des obstacles */
-
-        obstacleTimer -= delta;
-
-        if (obstacleTimer <= 0) {
-
-            createObstacle();
-
-            const minimumDelay = 950;
-            const randomDelay = Math.random() * 650;
-
-            obstacleTimer =
-                minimumDelay + randomDelay;
-
-        }
-
-
-        /* Déplacement des obstacles */
-
-        for (
-            let i = obstacles.length - 1;
-            i >= 0;
-            i--
-        ) {
-
-            const obstacle = obstacles[i];
-
-            obstacle.x -=
-                speed * (delta / 16.67);
-
-
-            /* Collision */
-
-            if (
-                checkCollision(
-                    player,
-                    obstacle
-                )
-            ) {
-
-                endGame();
-                return;
-
-            }
-
-
-            /* Suppression hors écran */
-
-            if (
-                obstacle.x +
-                obstacle.width <
-                0
-            ) {
-
-                obstacles.splice(i, 1);
-
-            }
-
-        }
-
-
-        /* Score */
-
-        score += delta * 0.01;
-
-        scoreDisplay.textContent =
-            "Score : " +
-            Math.floor(score);
-
-    }
-
-
-    /* =========================================================
-       FIN
-    ========================================================= */
-
-    function endGame() {
-
-        running = false;
-        gameOver = true;
-
-        startButton.textContent =
-            "Recommencer";
-
-        draw();
-
-    }
-
-
-    /* =========================================================
-       DESSIN DU DECOR
-    ========================================================= */
-
-    function drawBackground() {
+document.addEventListener(
+    "keydown",
+    function(event) {
 
         if (
-            backgroundImage.complete &&
-            backgroundImage.naturalWidth > 0
+            event.code === "Space" ||
+            event.code === "ArrowUp"
         ) {
-
-            /*
-            On utilise un effet "cover":
-            l'image remplit tout le canvas
-            sans être déformée.
-            */
-
-            const imageRatio =
-                backgroundImage.naturalWidth /
-                backgroundImage.naturalHeight;
-
-            const canvasRatio =
-                WIDTH / HEIGHT;
-
-            let sourceX = 0;
-            let sourceY = 0;
-            let sourceWidth =
-                backgroundImage.naturalWidth;
-            let sourceHeight =
-                backgroundImage.naturalHeight;
-
-
-            if (imageRatio > canvasRatio) {
-
-                sourceWidth =
-                    backgroundImage.naturalHeight *
-                    canvasRatio;
-
-                sourceX =
-                    (
-                        backgroundImage.naturalWidth -
-                        sourceWidth
-                    ) / 2;
-
-            }
-            else {
-
-                sourceHeight =
-                    backgroundImage.naturalWidth /
-                    canvasRatio;
-
-                sourceY =
-                    (
-                        backgroundImage.naturalHeight -
-                        sourceHeight
-                    ) / 2;
-
-            }
-
-
-            ctx.drawImage(
-
-                backgroundImage,
-
-                sourceX,
-                sourceY,
-                sourceWidth,
-                sourceHeight,
-
-                0,
-                0,
-                WIDTH,
-                HEIGHT
-
-            );
-
-        }
-        else {
-
-            ctx.fillStyle = "#eee7dc";
-
-            ctx.fillRect(
-                0,
-                0,
-                WIDTH,
-                HEIGHT
-            );
-
-        }
-
-
-        /*
-        Voile blanc léger.
-        Plus le dernier chiffre est élevé,
-        plus le décor devient pâle.
-        */
-
-        ctx.fillStyle =
-            "rgba(255,255,255,0.16)";
-
-        ctx.fillRect(
-            0,
-            0,
-            WIDTH,
-            HEIGHT
-        );
-
-    }
-
-
-    /* =========================================================
-       DESSIN DU PERSONNAGE
-    ========================================================= */
-
-    function drawPlayer() {
-
-        if (
-            playerImage.complete &&
-            playerImage.naturalWidth > 0
-        ) {
-
-            ctx.save();
-
-            /*
-            Petite ombre autour du personnage
-            pour qu'il ressorte du décor.
-            */
-
-            ctx.shadowColor =
-                "rgba(255,255,255,0.95)";
-
-            ctx.shadowBlur = 5;
-
-            ctx.drawImage(
-
-                playerImage,
-
-                player.x,
-                player.y,
-
-                player.width,
-                player.height
-
-            );
-
-            ctx.restore();
-
-        }
-        else {
-
-            ctx.fillStyle = "#222";
-
-            ctx.fillRect(
-
-                player.x,
-                player.y,
-
-                player.width,
-                player.height
-
-            );
-
-        }
-
-    }
-
-
-    /* =========================================================
-       DESSIN DES OBSTACLES
-    ========================================================= */
-
-    function drawObstacles() {
-
-        for (
-            const obstacle of obstacles
-        ) {
-
-            /*
-            Bordure blanche
-            */
-
-            ctx.fillStyle =
-                "rgba(255,255,255,0.95)";
-
-            ctx.fillRect(
-
-                obstacle.x - 2,
-                obstacle.y - 2,
-
-                obstacle.width + 4,
-                obstacle.height + 2
-
-            );
-
-
-            /*
-            Corps noir
-            */
-
-            ctx.fillStyle = "#181818";
-
-            ctx.fillRect(
-
-                obstacle.x,
-                obstacle.y,
-
-                obstacle.width,
-                obstacle.height
-
-            );
-
-        }
-
-    }
-
-
-    /* =========================================================
-       DESSIN GENERAL
-    ========================================================= */
-
-    function draw() {
-
-        ctx.clearRect(
-            0,
-            0,
-            WIDTH,
-            HEIGHT
-        );
-
-
-        /* Décor Montréal */
-
-        drawBackground();
-
-
-        /*
-        Bande sombre en bas.
-        Elle matérialise la route
-        et améliore la lisibilité.
-        */
-
-        ctx.fillStyle =
-            "rgba(20,20,20,0.68)";
-
-        ctx.fillRect(
-            0,
-            GROUND,
-            WIDTH,
-            HEIGHT - GROUND
-        );
-
-
-        /* Ligne du sol */
-
-        ctx.fillStyle =
-            "rgba(255,255,255,0.75)";
-
-        ctx.fillRect(
-            0,
-            GROUND,
-            WIDTH,
-            2
-        );
-
-
-        /* Personnage */
-
-        drawPlayer();
-
-
-        /* Obstacles */
-
-        drawObstacles();
-
-
-        /* =====================================================
-           ECRAN DE DEPART
-        ===================================================== */
-
-        if (
-            !running &&
-            !gameOver
-        ) {
-
-            ctx.fillStyle =
-                "rgba(255,255,255,0.18)";
-
-            ctx.fillRect(
-                0,
-                0,
-                WIDTH,
-                HEIGHT
-            );
-
-            ctx.fillStyle = "#111";
-
-            ctx.font =
-                "bold 25px Arial";
-
-            ctx.textAlign = "center";
-
-            ctx.fillText(
-                "Clique sur « Commencer »",
-                WIDTH / 2,
-                55
-            );
-
-            ctx.textAlign = "left";
-
-        }
-
-
-        /* =====================================================
-           GAME OVER
-        ===================================================== */
-
-        if (gameOver) {
-
-            ctx.fillStyle =
-                "rgba(255,255,255,0.80)";
-
-            ctx.fillRect(
-                0,
-                0,
-                WIDTH,
-                HEIGHT
-            );
-
-            ctx.fillStyle = "#222";
-
-            ctx.textAlign = "center";
-
-            ctx.font =
-                "bold 32px Arial";
-
-            ctx.fillText(
-                "GAME OVER",
-                WIDTH / 2,
-                HEIGHT / 2 - 10
-            );
-
-            ctx.font =
-                "18px Arial";
-
-            ctx.fillText(
-                "Score : " +
-                Math.floor(score),
-                WIDTH / 2,
-                HEIGHT / 2 + 25
-            );
-
-            ctx.textAlign = "left";
-
-        }
-
-    }
-
-
-    /* =========================================================
-       BOUCLE PRINCIPALE
-    ========================================================= */
-
-    function gameLoop(timestamp) {
-
-        if (!running) {
-
-            draw();
-            return;
-
-        }
-
-        let delta =
-            timestamp - lastTime;
-
-        lastTime = timestamp;
-
-
-        if (delta > 50) {
-            delta = 50;
-        }
-
-
-        update(delta);
-        draw();
-
-
-        if (running) {
-
-            requestAnimationFrame(
-                gameLoop
-            );
-
-        }
-
-    }
-
-
-    /* =========================================================
-       BOUTON
-    ========================================================= */
-
-    startButton.addEventListener(
-        "click",
-        function() {
-
-            startGame();
-
-        }
-    );
-
-
-    /* =========================================================
-       CLAVIER
-    ========================================================= */
-
-    document.addEventListener(
-        "keydown",
-        function(event) {
-
-            if (
-                event.code === "Space" ||
-                event.code === "ArrowUp"
-            ) {
-
-                event.preventDefault();
-
-                jump();
-
-            }
-
-        }
-    );
-
-
-    /* =========================================================
-       SOURIS / TELEPHONE
-    ========================================================= */
-
-    canvas.addEventListener(
-        "pointerdown",
-        function(event) {
 
             event.preventDefault();
 
             jump();
-
         }
+    }
+);
+
+
+canvas.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        event.preventDefault();
+
+        jump();
+    }
+);
+
+
+/*
+=========================================================
+CHARGEMENT
+=========================================================
+*/
+
+playerImage.onload = function() {
+    draw();
+};
+
+backgroundImage.onload = function() {
+    draw();
+};
+
+playerImage.onerror = function() {
+
+    console.log(
+        "Impossible de charger player.png"
     );
 
+    draw();
+};
 
-    /* =========================================================
-       CHARGEMENT DES IMAGES
-    ========================================================= */
+backgroundImage.onerror = function() {
 
-    playerImage.onload =
-        function() {
+    console.log(
+        "Impossible de charger background.jpg"
+    );
 
-            draw();
-
-        };
-
-
-    backgroundImage.onload =
-        function() {
-
-            draw();
-
-        };
+    draw();
+};
 
 
-    playerImage.onerror =
-        function() {
+/*
+=========================================================
+INITIALISATION
+=========================================================
+*/
 
-            console.log(
-                "Impossible de charger player.png"
-            );
-
-            draw();
-
-        };
-
-
-    backgroundImage.onerror =
-        function() {
-
-            console.log(
-                "Impossible de charger background.jpg"
-            );
-
-            draw();
-
-        };
-
-
-    /* =========================================================
-       INITIALISATION
-    ========================================================= */
-
-    resetGame();
+resetGame();
 
 </script>
 
