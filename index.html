@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeu</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: #f5f5f5;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        padding: 30px 10px;
+    }
+
+    .game-container {
+        width: 100%;
+        max-width: 800px;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    canvas {
+        width: 100%;
+        height: auto;
+        background: white;
+        border: 2px solid #222;
+        display: block;
+        touch-action: manipulation;
+    }
+
+    .info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    button {
+        padding: 10px 18px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .hint {
+        margin-top: 10px;
+        color: #666;
+        font-size: 14px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="game-container">
+
+    <h1>🏃 Le jeu</h1>
+
+    <canvas id="game" width="800" height="260"></canvas>
+
+    <div class="info">
+        <span id="score">Score : 0</span>
+        <button id="start">Commencer</button>
+    </div>
+
+    <div class="hint">
+        Espace / ↑ / clic / toucher l'écran pour sauter
+    </div>
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const scoreDisplay = document.getElementById("score");
+const startButton = document.getElementById("start");
+
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+const GROUND = 218;
+
+let player;
+let obstacles;
+let speed;
+let score;
+let running;
+let gameOver;
+let lastTime;
+let spawnTimer;
+let animationFrame;
+
+
+/* -------------------------
+   INITIALISATION
+------------------------- */
+
+function resetGame() {
+
+    player = {
+        x: 80,
+        y: GROUND - 46,
+        width: 34,
+        height: 46,
+        velocityY: 0,
+        jumping: false
+    };
+
+    obstacles = [];
+
+    speed = 5;
+    score = 0;
+    running = false;
+    gameOver = false;
+
+    lastTime = 0;
+    spawnTimer = 0;
+
+    scoreDisplay.textContent = "Score : 0";
+
+    startButton.textContent = "Commencer";
+
+    draw();
+}
+
+
+/* -------------------------
+   DEMARRER
+------------------------- */
+
+function startGame() {
+
+    resetGame();
+
+    running = true;
+
+    startButton.textContent = "Recommencer";
+
+    animationFrame = requestAnimationFrame(gameLoop);
+}
+
+
+/* -------------------------
+   SAUT
+------------------------- */
+
+function jump() {
+
+    if (!running) {
+        startGame();
+        return;
+    }
+
+    if (!player.jumping) {
+
+        player.velocityY = -11.5;
+        player.jumping = true;
+
+    }
+}
+
+
+/* -------------------------
+   CREER UN OBSTACLE
+------------------------- */
+
+function createObstacle() {
+
+    const height = 28 + Math.random() * 28;
+    const width = 18 + Math.random() * 20;
+
+    obstacles.push({
+        x: WIDTH + 10,
+        y: GROUND - height,
+        width: width,
+        height: height
+    });
+}
+
+
+/* -------------------------
+   COLLISION
+------------------------- */
+
+function collision(a, b) {
+
+    const padding = 5;
+
+    return (
+        a.x + padding < b.x + b.width &&
+        a.x + a.width - padding > b.x &&
+        a.y + padding < b.y + b.height &&
+        a.y + a.height - padding > b.y
+    );
+}
+
+
+/* -------------------------
+   MISE A JOUR
+------------------------- */
+
+function update(delta) {
+
+    /* Gravité */
+
+    player.velocityY += 0.62 * delta;
+
+    player.y += player.velocityY * delta;
+
+
+    /* Sol */
+
+    if (player.y >= GROUND - player.height) {
+
+        player.y = GROUND - player.height;
+
+        player.velocityY = 0;
+
+        player.jumping = false;
+    }
+
+
+    /* Difficulté progressive */
+
+    speed += 0.0025 * delta;
+
+
+    /* Apparition des obstacles */
+
+    spawnTimer -= delta;
+
+    if (spawnTimer <= 0) {
+
+        createObstacle();
+
+        spawnTimer =
+            Math.max(48, 88 - speed * 3)
+            + Math.random() * 42;
+    }
+
+
+    /* Déplacement */
+
+    for (const obstacle of obstacles) {
+
+        obstacle.x -= speed * delta;
+    }
+
+
+    /* Supprimer les obstacles sortis */
+
+    obstacles = obstacles.filter(
+        obstacle => obstacle.x + obstacle.width > -20
+    );
+
+
+    /* Vérifier les collisions */
+
+    for (const obstacle of obstacles) {
+
+        if (collision(player, obstacle)) {
+
+            running = false;
+            gameOver = true;
+
+            startButton.textContent = "Recommencer";
+
+            return;
+        }
+    }
+
+
+    /* Score */
+
+    score += delta * 0.55;
+
+    scoreDisplay.textContent =
+        "Score : " + Math.floor(score);
+}
+
+
+/* -------------------------
+   DESSIN
+------------------------- */
+
+function draw() {
+
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+
+    /* Fond */
+
+    ctx.fillStyle = "#ffffff";
+
+    ctx.fillRect(
+        0,
+        0,
+        WIDTH,
+        HEIGHT
+    );
+
+
+    /* Petits éléments du décor */
+
+    ctx.fillStyle = "#d8d8d8";
+
+    for (let i = 0; i < 12; i++) {
+
+        const x =
+            (i * 83 - (score * 1.8) % 83);
+
+        ctx.fillRect(
+            x,
+            42 + (i % 3) * 22,
+            3,
+            2
+        );
+    }
+
+
+    /* Sol */
+
+    ctx.strokeStyle = "#222";
+
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        0,
+        GROUND + 1
+    );
+
+    ctx.lineTo(
+        WIDTH,
+        GROUND + 1
+    );
+
+    ctx.stroke();
+
+
+    /* Marques du sol */
+
+    ctx.fillStyle = "#888";
+
+    for (let x = 0; x < WIDTH; x += 34) {
+
+        ctx.fillRect(
+            x - (score * 3 % 34),
+            GROUND + 8,
+            18,
+            2
+        );
+    }
+
+
+    /* PERSONNAGE */
+
+    ctx.fillStyle = "#222";
+
+    ctx.fillRect(
+        player.x,
+        player.y,
+        player.width,
+        player.height
+    );
+
+    ctx.fillRect(
+        player.x + 7,
+        player.y - 8,
+        20,
+        10
+    );
+
+
+    /* Œil */
+
+    ctx.fillStyle = "#fff";
+
+    ctx.fillRect(
+        player.x + 20,
+        player.y - 5,
+        3,
+        3
+    );
+
+
+    /* Jambes */
+
+    ctx.fillStyle = "#222";
+
+    ctx.fillRect(
+        player.x + 4,
+        player.y + player.height,
+        8,
+        5
+    );
+
+    ctx.fillRect(
+        player.x + 23,
+        player.y + player.height,
+        8,
+        5
+    );
+
+
+    /* OBSTACLES */
+
+    ctx.fillStyle = "#444";
+
+    for (const obstacle of obstacles) {
+
+        ctx.fillRect(
+            obstacle.x,
+            obstacle.y,
+            obstacle.width,
+            obstacle.height
+        );
+    }
+
+
+    /* ECRAN GAME OVER */
+
+    if (!running && gameOver) {
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.85)";
+
+        ctx.fillRect(
+            0,
+            0,
+            WIDTH,
+            HEIGHT
+        );
+
+        ctx.fillStyle = "#222";
+
+        ctx.textAlign = "center";
+
+        ctx.font =
+            "bold 28px Arial";
+
+        ctx.fillText(
+            "GAME OVER",
+            WIDTH / 2,
+            112
+        );
+
+        ctx.font =
+            "16px Arial";
+
+        ctx.fillText(
+            "Score : " + Math.floor(score),
+            WIDTH / 2,
+            142
+        );
+
+        ctx.textAlign = "start";
+    }
+
+
+    /* ECRAN DE DEPART */
+
+    else if (!running) {
+
+        ctx.fillStyle = "#222";
+
+        ctx.textAlign = "center";
+
+        ctx.font =
+            "bold 24px Arial";
+
+        ctx.fillText(
+            "APPUIE SUR COMMENCER",
+            WIDTH / 2,
+            120
+        );
+
+        ctx.font =
+            "15px Arial";
+
+        ctx.fillText(
+            "Puis saute pour éviter les obstacles",
+            WIDTH / 2,
+            148
+        );
+
+        ctx.textAlign = "start";
+    }
+}
+
+
+/* -------------------------
+   BOUCLE DU JEU
+------------------------- */
+
+function gameLoop(time) {
+
+    if (!running) {
+
+        draw();
+
+        return;
+    }
+
+
+    if (!lastTime) {
+        lastTime = time;
+    }
+
+
+    const delta =
+        Math.min(
+            (time - lastTime) / 16.67,
+            2
+        );
+
+
+    lastTime = time;
+
+
+    update(delta);
+
+    draw();
+
+
+    if (running) {
+
+        animationFrame =
+            requestAnimationFrame(gameLoop);
+    }
+}
+
+
+/* -------------------------
+   CONTROLES
+------------------------- */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.code === "Space" ||
+            event.code === "ArrowUp"
+        ) {
+
+            event.preventDefault();
+
+            jump();
+        }
+    }
+);
+
+
+canvas.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        event.preventDefault();
+
+        jump();
+    }
+);
+
+
+startButton.addEventListener(
+    "click",
+    startGame
+);
+
+
+/* Initialisation */
+
+resetGame();
+
+</script>
+
+</body>
+</html>
