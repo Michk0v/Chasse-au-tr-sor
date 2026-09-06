@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Le jeu</title>
+<title>Ostie de français</title>
 
 <style>
     * {
@@ -92,13 +92,12 @@
 
 <div class="game-container">
 
-    <h1> Ostie de français !</h1>
+    <h1>OSTIE DE FRANÇAIS</h1>
 
     <div class="subtitle">
         Saute les obstacles et cours à travers Montréal !
     </div>
 
-    <!-- Le canvas est maintenant beaucoup plus haut -->
     <canvas id="game" width="800" height="500"></canvas>
 
     <div class="info">
@@ -112,7 +111,6 @@
 
 </div>
 
-
 <script>
 
 const canvas = document.getElementById("game");
@@ -121,23 +119,10 @@ const ctx = canvas.getContext("2d");
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
 
-/*
-=========================================================
-SOL
-
-Cette valeur détermine exactement où les pieds
-du personnage et les obstacles touchent le décor.
-=========================================================
-*/
-
 const GROUND = 440;
+const WIN_SCORE = 1997;
 
-
-/*
-=========================================================
-IMAGES
-=========================================================
-*/
+/* IMAGES */
 
 const playerImage = new Image();
 playerImage.src = "player.png";
@@ -145,75 +130,41 @@ playerImage.src = "player.png";
 const backgroundImage = new Image();
 backgroundImage.src = "background.jpg";
 
-
-/*
-=========================================================
-HTML
-=========================================================
-*/
+/* HTML */
 
 const scoreDisplay = document.getElementById("score");
 const startButton = document.getElementById("start");
 
-
-/*
-=========================================================
-VARIABLES
-=========================================================
-*/
+/* VARIABLES */
 
 let player;
 let obstacles = [];
 
 let running = false;
 let gameOver = false;
+let won = false;
 
 let score = 0;
 let speed = 5;
 let obstacleTimer = 0;
-
 let lastTime = 0;
 
-let won = false;
-
-const WIN_SCORE = 1997;
-
-
-/*
-=========================================================
-JOUEUR
-=========================================================
-*/
+/* JOUEUR */
 
 function resetPlayer() {
-
     player = {
         x: 85,
-
-        /*
-        Le personnage est maintenant plus grand.
-        Ses pieds sont exactement sur GROUND.
-        */
-
-        y: GROUND - 105,
-
-        width: 65,
+        y: GROUND - 125,
+        width: 48,
         height: 125,
-
         velocityY: 0,
         jumping: false
     };
 }
 
-
-/*
-=========================================================
-RESET
-=========================================================
-*/
+/* RESET */
 
 function resetGame() {
-
     resetPlayer();
 
     obstacles = [];
@@ -223,8 +174,8 @@ function resetGame() {
     obstacleTimer = 0;
 
     gameOver = false;
-    running = false;
     won = false;
+    running = false;
 
     scoreDisplay.textContent = "Score : 0";
     startButton.textContent = "Commencer";
@@ -232,15 +183,9 @@ function resetGame() {
     draw();
 }
 
-
-/*
-=========================================================
-DEMARRER
-=========================================================
-*/
+/* DEMARRER */
 
 function startGame() {
-
     resetPlayer();
 
     obstacles = [];
@@ -250,8 +195,8 @@ function startGame() {
     obstacleTimer = 0;
 
     gameOver = false;
-    running = true;
     won = false;
+    running = true;
 
     lastTime = performance.now();
 
@@ -260,42 +205,23 @@ function startGame() {
     requestAnimationFrame(gameLoop);
 }
 
-
-/*
-=========================================================
-SAUT
-=========================================================
-*/
+/* SAUT */
 
 function jump() {
-
     if (!running) {
         startGame();
         return;
     }
 
     if (!player.jumping) {
-
-        /*
-        Saut un peu plus haut pour tenir compte
-        du nouveau format du jeu.
-        */
-
         player.velocityY = -15;
-
         player.jumping = true;
     }
 }
 
-
-/*
-=========================================================
-OBSTACLES
-=========================================================
-*/
+/* OBSTACLES */
 
 function createObstacle() {
-
     const width = 28 + Math.random() * 22;
     const height = 45 + Math.random() * 35;
 
@@ -307,15 +233,9 @@ function createObstacle() {
     });
 }
 
-
-/*
-=========================================================
-COLLISIONS
-=========================================================
-*/
+/* COLLISIONS */
 
 function checkCollision(a, b) {
-
     const paddingX = 8;
     const paddingY = 5;
 
@@ -327,161 +247,100 @@ function checkCollision(a, b) {
     );
 }
 
-
-/*
-=========================================================
-UPDATE
-=========================================================
-*/
+/* UPDATE */
 
 function update(delta) {
-
     if (!running) {
         return;
     }
-
 
     /* Gravité */
 
     player.velocityY += 0.75;
     player.y += player.velocityY;
 
-
-    /* Retour au trottoir */
+    /* Sol */
 
     if (player.y >= GROUND - player.height) {
-
         player.y = GROUND - player.height;
-
         player.velocityY = 0;
         player.jumping = false;
     }
 
-
-    /* Accélération progressive */
+    /* Difficulté progressive lente */
 
     speed += 0.000025 * delta;
-
 
     /* Apparition des obstacles */
 
     obstacleTimer -= delta;
 
-if (obstacleTimer <= 0) {
+    if (obstacleTimer <= 0) {
+        createObstacle();
 
-    createObstacle();
+        const progress = Math.min(score / WIN_SCORE, 1);
 
-    /*
-    progress va de 0 au début à 1 à 1997 points.
-    */
+        const minimumDelay =
+            1300 - (450 * progress);
 
-    const progress =
-        Math.min(score / WIN_SCORE, 1);
+        const randomDelay =
+            600 - (200 * progress);
 
-    /*
-    Au début :
-    environ 1300 à 1900 ms entre les obstacles.
+        obstacleTimer =
+            minimumDelay +
+            Math.random() * randomDelay;
+    }
 
-    À la fin :
-    environ 850 à 1250 ms.
-
-    La difficulté augmente donc progressivement
-    sans changement brutal.
-    */
-
-    const minimumDelay =
-        1300 - (450 * progress);
-
-    const randomDelay =
-        600 - (200 * progress);
-
-    obstacleTimer =
-        minimumDelay +
-        Math.random() * randomDelay;
-}
-
-
-    /* Déplacement */
+    /* Déplacement des obstacles */
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
-
         const obstacle = obstacles[i];
 
-        obstacle.x -=
-            speed * (delta / 16.67);
-
+        obstacle.x -= speed * (delta / 16.67);
 
         if (checkCollision(player, obstacle)) {
-
             endGame();
             return;
         }
 
-
         if (obstacle.x + obstacle.width < 0) {
-
             obstacles.splice(i, 1);
         }
     }
 
-
     /* Score */
 
-   /*
-Environ 12 points par seconde.
+    score += delta * 0.012;
 
-1997 points correspondent donc à environ
-2 minutes 45 secondes de survie.
-*/
+    if (score >= WIN_SCORE) {
+        score = WIN_SCORE;
 
-score += delta * 0.012;
+        scoreDisplay.textContent =
+            "Score : " + WIN_SCORE;
 
-
-/*
-VICTOIRE
-*/
-
-if (score >= WIN_SCORE) {
-
-    score = WIN_SCORE;
+        winGame();
+        return;
+    }
 
     scoreDisplay.textContent =
-        "Score : " + WIN_SCORE;
-
-    winGame();
-
-    return;
+        "Score : " + Math.floor(score);
 }
 
-
-scoreDisplay.textContent =
-    "Score : " + Math.floor(score);
-
-
-/*
-=========================================================
-GAME OVER
-=========================================================
-*/
+/* GAME OVER */
 
 function endGame() {
-
     running = false;
     gameOver = true;
+    won = false;
 
     startButton.textContent = "Recommencer";
 
     draw();
 }
-   
-/*
-=========================================================
-VICTOIRE
-=========================================================
-*/
+
+/* VICTOIRE */
 
 function winGame() {
-
     running = false;
     gameOver = false;
     won = true;
@@ -491,140 +350,13 @@ function winGame() {
     draw();
 }
 
-/*
-=========================================================
-VICTOIRE
-=========================================================
-*/
-
-if (won) {
-
-    /*
-    Assombrit légèrement le décor
-    pour faire ressortir le message.
-    */
-
-    ctx.fillStyle =
-        "rgba(255,255,255,0.88)";
-
-    ctx.fillRect(
-        55,
-        115,
-        WIDTH - 110,
-        245
-    );
-
-
-    ctx.strokeStyle = "#222";
-    ctx.lineWidth = 4;
-
-    ctx.strokeRect(
-        55,
-        115,
-        WIDTH - 110,
-        245
-    );
-
-
-    ctx.fillStyle = "#222";
-
-    ctx.textAlign = "center";
-
-
-    /*
-    Titre
-    */
-
-    ctx.font =
-        "bold 34px Arial";
-
-    ctx.fillText(
-        "BRAVO !",
-        WIDTH / 2,
-        165
-    );
-
-
-    /*
-    Message sur plusieurs lignes
-    */
-
-    ctx.font =
-        "bold 20px Arial";
-
-    ctx.fillText(
-        "T'as bien gagné un indice,",
-        WIDTH / 2,
-        215
-    );
-
-    ctx.fillText(
-        "ostie de française...",
-        WIDTH / 2,
-        248
-    );
-
-
-    ctx.font =
-        "bold 23px Arial";
-
-    ctx.fillText(
-        "Le mot indice est :",
-        WIDTH / 2,
-        295
-    );
-
-
-    /*
-    Mot secret plus gros
-    */
-
-    ctx.font =
-        "bold 36px Arial";
-
-    ctx.fillText(
-        "SERPENT",
-        WIDTH / 2,
-        335
-    );
-
-
-    ctx.font =
-        "18px Arial";
-
-    ctx.fillText(
-        "Bonne chance pour la suite !",
-        WIDTH / 2,
-        375
-    );
-
-
-    ctx.textAlign = "left";
-}
-   
-/*
-=========================================================
-DECOR
-
-Cette version montre quasiment toute l'image,
-sans la recadrer agressivement.
-=========================================================
-*/
+/* DECOR */
 
 function drawBackground() {
-
     if (
         backgroundImage.complete &&
         backgroundImage.naturalWidth > 0
     ) {
-
-        /*
-        On affiche toute l'image dans le canvas.
-
-        Ton image est proche du ratio du nouveau canvas,
-        donc on perd très peu de décor.
-        */
-
         ctx.drawImage(
             backgroundImage,
             0,
@@ -632,9 +364,7 @@ function drawBackground() {
             WIDTH,
             HEIGHT
         );
-
     } else {
-
         ctx.fillStyle = "#eee7dc";
 
         ctx.fillRect(
@@ -645,16 +375,9 @@ function drawBackground() {
         );
     }
 
+    /* Voile blanc léger */
 
-    /*
-    Voile très léger.
-
-    Je l'ai réduit par rapport à la version précédente
-    pour conserver davantage les couleurs du décor.
-    */
-
-    ctx.fillStyle =
-        "rgba(255,255,255,0.20)";
+    ctx.fillStyle = "rgba(255,255,255,0.18)";
 
     ctx.fillRect(
         0,
@@ -664,30 +387,16 @@ function drawBackground() {
     );
 }
 
-
-/*
-=========================================================
-PERSONNAGE
-=========================================================
-*/
+/* PERSONNAGE */
 
 function drawPlayer() {
-
     if (
         playerImage.complete &&
         playerImage.naturalWidth > 0
     ) {
-
         ctx.save();
 
-        /*
-        Halo blanc discret pour détacher
-        la photo du décor.
-        */
-
-        ctx.shadowColor =
-            "rgba(255,255,255,1)";
-
+        ctx.shadowColor = "rgba(255,255,255,1)";
         ctx.shadowBlur = 6;
 
         ctx.drawImage(
@@ -699,9 +408,7 @@ function drawPlayer() {
         );
 
         ctx.restore();
-
     } else {
-
         ctx.fillStyle = "#222";
 
         ctx.fillRect(
@@ -713,23 +420,11 @@ function drawPlayer() {
     }
 }
 
-
-/*
-=========================================================
-OBSTACLES
-=========================================================
-*/
+/* OBSTACLES */
 
 function drawObstacles() {
-
     for (const obstacle of obstacles) {
-
-        /*
-        Contour clair
-        */
-
-        ctx.fillStyle =
-            "rgba(255,255,255,0.95)";
+        ctx.fillStyle = "rgba(255,255,255,0.95)";
 
         ctx.fillRect(
             obstacle.x - 3,
@@ -737,11 +432,6 @@ function drawObstacles() {
             obstacle.width + 6,
             obstacle.height + 3
         );
-
-
-        /*
-        Obstacle
-        */
 
         ctx.fillStyle = "#181818";
 
@@ -754,15 +444,9 @@ function drawObstacles() {
     }
 }
 
-
-/*
-=========================================================
-DESSIN GENERAL
-=========================================================
-*/
+/* DESSIN GENERAL */
 
 function draw() {
-
     ctx.clearRect(
         0,
         0,
@@ -770,23 +454,11 @@ function draw() {
         HEIGHT
     );
 
-
-    /* Montréal */
-
     drawBackground();
 
+    /* Ligne de sol discrète */
 
-    /*
-    Ligne très discrète au niveau du sol.
-
-    Contrairement à la version précédente,
-    je SUPPRIME la grosse bande noire du bas :
-    elle cachait une partie du décor et empêchait
-    le personnage de sembler réellement marcher dedans.
-    */
-
-    ctx.fillStyle =
-        "rgba(255,255,255,0.45)";
+    ctx.fillStyle = "rgba(255,255,255,0.45)";
 
     ctx.fillRect(
         0,
@@ -795,32 +467,13 @@ function draw() {
         2
     );
 
-
-    /* Personnage */
-
     drawPlayer();
-
-
-    /* Obstacles */
-
     drawObstacles();
 
+    /* ECRAN DE DEPART */
 
-    /*
-    =====================================================
-    DEPART
-    =====================================================
-    */
-
-    if (!running && !gameOver) {
-
-        /*
-        Petit cartouche plutôt qu'un voile
-        sur toute l'image.
-        */
-
-        ctx.fillStyle =
-            "rgba(255,255,255,0.82)";
+    if (!running && !gameOver && !won) {
+        ctx.fillStyle = "rgba(255,255,255,0.82)";
 
         ctx.fillRect(
             WIDTH / 2 - 165,
@@ -830,9 +483,7 @@ function draw() {
         );
 
         ctx.fillStyle = "#111";
-
         ctx.font = "bold 23px Arial";
-
         ctx.textAlign = "center";
 
         ctx.fillText(
@@ -844,17 +495,10 @@ function draw() {
         ctx.textAlign = "left";
     }
 
-
-    /*
-    =====================================================
-    GAME OVER
-    =====================================================
-    */
+    /* GAME OVER */
 
     if (gameOver) {
-
-        ctx.fillStyle =
-            "rgba(255,255,255,0.82)";
+        ctx.fillStyle = "rgba(255,255,255,0.82)";
 
         ctx.fillRect(
             WIDTH / 2 - 150,
@@ -864,9 +508,7 @@ function draw() {
         );
 
         ctx.fillStyle = "#222";
-
         ctx.textAlign = "center";
-
         ctx.font = "bold 32px Arial";
 
         ctx.fillText(
@@ -885,19 +527,86 @@ function draw() {
 
         ctx.textAlign = "left";
     }
+
+    /* VICTOIRE */
+
+    if (won) {
+        ctx.fillStyle = "rgba(255,255,255,0.90)";
+
+        ctx.fillRect(
+            55,
+            105,
+            WIDTH - 110,
+            275
+        );
+
+        ctx.strokeStyle = "#222";
+        ctx.lineWidth = 4;
+
+        ctx.strokeRect(
+            55,
+            105,
+            WIDTH - 110,
+            275
+        );
+
+        ctx.fillStyle = "#222";
+        ctx.textAlign = "center";
+
+        ctx.font = "bold 34px Arial";
+
+        ctx.fillText(
+            "BRAVO !",
+            WIDTH / 2,
+            155
+        );
+
+        ctx.font = "bold 20px Arial";
+
+        ctx.fillText(
+            "T'as bien gagné un indice,",
+            WIDTH / 2,
+            205
+        );
+
+        ctx.fillText(
+            "ostie de française...",
+            WIDTH / 2,
+            238
+        );
+
+        ctx.font = "bold 23px Arial";
+
+        ctx.fillText(
+            "Le mot indice est :",
+            WIDTH / 2,
+            285
+        );
+
+        ctx.font = "bold 38px Arial";
+
+        ctx.fillText(
+            "SERPENT",
+            WIDTH / 2,
+            330
+        );
+
+        ctx.font = "18px Arial";
+
+        ctx.fillText(
+            "Bonne chance pour la suite !",
+            WIDTH / 2,
+            365
+        );
+
+        ctx.textAlign = "left";
+    }
 }
 
-
-/*
-=========================================================
-BOUCLE
-=========================================================
-*/
+/* BOUCLE */
 
 function gameLoop(timestamp) {
-
     if (!running) {
-
         draw();
         return;
     }
@@ -912,21 +621,14 @@ function gameLoop(timestamp) {
     }
 
     update(delta);
-
     draw();
 
     if (running) {
-
         requestAnimationFrame(gameLoop);
     }
 }
 
-
-/*
-=========================================================
-CONTROLES
-=========================================================
-*/
+/* CONTROLES */
 
 startButton.addEventListener(
     "click",
@@ -935,40 +637,28 @@ startButton.addEventListener(
     }
 );
 
-
 document.addEventListener(
     "keydown",
     function(event) {
-
         if (
             event.code === "Space" ||
             event.code === "ArrowUp"
         ) {
-
             event.preventDefault();
-
             jump();
         }
     }
 );
 
-
 canvas.addEventListener(
     "pointerdown",
     function(event) {
-
         event.preventDefault();
-
         jump();
     }
 );
 
-
-/*
-=========================================================
-CHARGEMENT
-=========================================================
-*/
+/* CHARGEMENT */
 
 playerImage.onload = function() {
     draw();
@@ -979,7 +669,6 @@ backgroundImage.onload = function() {
 };
 
 playerImage.onerror = function() {
-
     console.log(
         "Impossible de charger player.png"
     );
@@ -988,7 +677,6 @@ playerImage.onerror = function() {
 };
 
 backgroundImage.onerror = function() {
-
     console.log(
         "Impossible de charger background.jpg"
     );
@@ -996,12 +684,7 @@ backgroundImage.onerror = function() {
     draw();
 };
 
-
-/*
-=========================================================
-INITIALISATION
-=========================================================
-*/
+/* INITIALISATION */
 
 resetGame();
 
