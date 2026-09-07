@@ -113,6 +113,10 @@
 
 <script>
 
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -122,7 +126,10 @@ const HEIGHT = canvas.height;
 const GROUND = 440;
 const WIN_SCORE = 1997;
 
-/* IMAGES */
+
+/* =========================================================
+   IMAGES
+========================================================= */
 
 const playerImage = new Image();
 playerImage.src = "player.png";
@@ -130,12 +137,21 @@ playerImage.src = "player.png";
 const backgroundImage = new Image();
 backgroundImage.src = "background.jpg";
 
-/* HTML */
+const cauliflowerImage = new Image();
+cauliflowerImage.src = "cauliflower.png";
+
+
+/* =========================================================
+   HTML
+========================================================= */
 
 const scoreDisplay = document.getElementById("score");
 const startButton = document.getElementById("start");
 
-/* VARIABLES */
+
+/* =========================================================
+   VARIABLES
+========================================================= */
 
 let player;
 let obstacles = [];
@@ -149,22 +165,33 @@ let speed = 5;
 let obstacleTimer = 0;
 let lastTime = 0;
 
-/* JOUEUR */
+
+/* =========================================================
+   JOUEUR
+========================================================= */
 
 function resetPlayer() {
+
     player = {
         x: 85,
-        y: GROUND - 105,
+        y: GROUND - 125,
+
         width: 48,
         height: 125,
+
         velocityY: 0,
         jumping: false
     };
+
 }
 
-/* RESET */
+
+/* =========================================================
+   RESET
+========================================================= */
 
 function resetGame() {
+
     resetPlayer();
 
     obstacles = [];
@@ -181,11 +208,16 @@ function resetGame() {
     startButton.textContent = "Commencer";
 
     draw();
+
 }
 
-/* DEMARRER */
+
+/* =========================================================
+   DEMARRER
+========================================================= */
 
 function startGame() {
+
     resetPlayer();
 
     obstacles = [];
@@ -203,82 +235,163 @@ function startGame() {
     startButton.textContent = "Recommencer";
 
     requestAnimationFrame(gameLoop);
+
 }
 
-/* SAUT */
+
+/* =========================================================
+   SAUT
+========================================================= */
 
 function jump() {
+
     if (!running) {
+
         startGame();
         return;
+
     }
 
     if (!player.jumping) {
+
         player.velocityY = -15;
         player.jumping = true;
+
     }
+
 }
 
-/* OBSTACLES */
+
+/* =========================================================
+   CREATION DES CHOUX-FLEURS
+========================================================= */
 
 function createObstacle() {
-    const width = 28 + Math.random() * 22;
-    const height = 45 + Math.random() * 35;
+
+    /*
+    Les choux-fleurs ont une taille légèrement
+    différente à chaque apparition.
+    */
+
+    const size =
+        55 + Math.random() * 15;
 
     obstacles.push({
+
         x: WIDTH + 10,
-        y: GROUND - height,
-        width: width,
-        height: height
+
+        y: GROUND - size,
+
+        width: size,
+        height: size
+
     });
+
 }
 
-/* COLLISIONS */
+
+/* =========================================================
+   COLLISIONS
+========================================================= */
 
 function checkCollision(a, b) {
-    const paddingX = 8;
-    const paddingY = 5;
+
+    /*
+    La boîte de collision du chou-fleur est volontairement
+    légèrement plus petite que l'image.
+
+    Cela évite de mourir alors que le personnage semble
+    visuellement avoir évité une feuille extérieure.
+    */
+
+    const playerPaddingX = 8;
+    const playerPaddingY = 5;
+
+    const cauliflowerPaddingX =
+        b.width * 0.12;
+
+    const cauliflowerPaddingTop =
+        b.height * 0.10;
 
     return (
-        a.x + paddingX < b.x + b.width &&
-        a.x + a.width - paddingX > b.x &&
-        a.y + paddingY < b.y + b.height &&
-        a.y + a.height - paddingY > b.y
+
+        a.x + playerPaddingX <
+        b.x + b.width - cauliflowerPaddingX &&
+
+        a.x + a.width - playerPaddingX >
+        b.x + cauliflowerPaddingX &&
+
+        a.y + playerPaddingY <
+        b.y + b.height &&
+
+        a.y + a.height - playerPaddingY >
+        b.y + cauliflowerPaddingTop
+
     );
+
 }
 
-/* UPDATE */
+
+/* =========================================================
+   UPDATE
+========================================================= */
 
 function update(delta) {
+
     if (!running) {
         return;
     }
 
-    /* Gravité */
+
+    /* GRAVITE */
 
     player.velocityY += 0.75;
     player.y += player.velocityY;
 
-    /* Sol */
 
-    if (player.y >= GROUND - player.height) {
-        player.y = GROUND - player.height;
+    /* RETOUR AU SOL */
+
+    if (
+        player.y >=
+        GROUND - player.height
+    ) {
+
+        player.y =
+            GROUND - player.height;
+
         player.velocityY = 0;
         player.jumping = false;
+
     }
 
-    /* Difficulté progressive lente */
 
-    speed += 0.000025 * delta;
+    /* DIFFICULTE PROGRESSIVE */
 
-    /* Apparition des obstacles */
+    speed +=
+        0.000025 * delta;
+
+
+    /* APPARITION DES CHOUX-FLEURS */
 
     obstacleTimer -= delta;
 
     if (obstacleTimer <= 0) {
+
         createObstacle();
 
-        const progress = Math.min(score / WIN_SCORE, 1);
+        const progress =
+            Math.min(
+                score / WIN_SCORE,
+                1
+            );
+
+        /*
+        Au début :
+        environ 1,3 à 1,9 seconde.
+
+        Vers la fin :
+        environ 0,85 à 1,25 seconde.
+        */
 
         const minimumDelay =
             1300 - (450 * progress);
@@ -288,75 +401,142 @@ function update(delta) {
 
         obstacleTimer =
             minimumDelay +
-            Math.random() * randomDelay;
+            Math.random() *
+            randomDelay;
+
     }
 
-    /* Déplacement des obstacles */
 
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-        const obstacle = obstacles[i];
+    /* DEPLACEMENT */
 
-        obstacle.x -= speed * (delta / 16.67);
+    for (
+        let i = obstacles.length - 1;
+        i >= 0;
+        i--
+    ) {
 
-        if (checkCollision(player, obstacle)) {
+        const obstacle =
+            obstacles[i];
+
+        obstacle.x -=
+            speed *
+            (delta / 16.67);
+
+
+        /* COLLISION */
+
+        if (
+            checkCollision(
+                player,
+                obstacle
+            )
+        ) {
+
             endGame();
             return;
+
         }
 
-        if (obstacle.x + obstacle.width < 0) {
-            obstacles.splice(i, 1);
+
+        /* SORTIE DE L'ECRAN */
+
+        if (
+            obstacle.x +
+            obstacle.width <
+            0
+        ) {
+
+            obstacles.splice(
+                i,
+                1
+            );
+
         }
+
     }
 
-    /* Score */
 
-    score += delta * 0.012;
+    /* SCORE */
 
-    if (score >= WIN_SCORE) {
-        score = WIN_SCORE;
+    score +=
+        delta * 0.012;
+
+
+    /* VICTOIRE */
+
+    if (
+        score >=
+        WIN_SCORE
+    ) {
+
+        score =
+            WIN_SCORE;
 
         scoreDisplay.textContent =
-            "Score : " + WIN_SCORE;
+            "Score : " +
+            WIN_SCORE;
 
         winGame();
+
         return;
+
     }
 
+
     scoreDisplay.textContent =
-        "Score : " + Math.floor(score);
+        "Score : " +
+        Math.floor(score);
+
 }
 
-/* GAME OVER */
+
+/* =========================================================
+   GAME OVER
+========================================================= */
 
 function endGame() {
+
     running = false;
     gameOver = true;
     won = false;
 
-    startButton.textContent = "Recommencer";
+    startButton.textContent =
+        "Recommencer";
 
     draw();
+
 }
 
-/* VICTOIRE */
+
+/* =========================================================
+   VICTOIRE
+========================================================= */
 
 function winGame() {
+
     running = false;
     gameOver = false;
     won = true;
 
-    startButton.textContent = "Rejouer";
+    startButton.textContent =
+        "Rejouer";
 
     draw();
+
 }
 
-/* DECOR */
+
+/* =========================================================
+   DECOR
+========================================================= */
 
 function drawBackground() {
+
     if (
         backgroundImage.complete &&
         backgroundImage.naturalWidth > 0
     ) {
+
         ctx.drawImage(
             backgroundImage,
             0,
@@ -364,8 +544,12 @@ function drawBackground() {
             WIDTH,
             HEIGHT
         );
-    } else {
-        ctx.fillStyle = "#eee7dc";
+
+    }
+    else {
+
+        ctx.fillStyle =
+            "#eee7dc";
 
         ctx.fillRect(
             0,
@@ -373,11 +557,17 @@ function drawBackground() {
             WIDTH,
             HEIGHT
         );
+
     }
 
-    /* Voile blanc léger */
 
-    ctx.fillStyle = "rgba(255,255,255,0.18)";
+    /*
+    Voile blanc pour que le personnage
+    et les choux-fleurs ressortent.
+    */
+
+    ctx.fillStyle =
+        "rgba(255,255,255,0.18)";
 
     ctx.fillRect(
         0,
@@ -385,18 +575,26 @@ function drawBackground() {
         WIDTH,
         HEIGHT
     );
+
 }
 
-/* PERSONNAGE */
+
+/* =========================================================
+   PERSONNAGE
+========================================================= */
 
 function drawPlayer() {
+
     if (
         playerImage.complete &&
         playerImage.naturalWidth > 0
     ) {
+
         ctx.save();
 
-        ctx.shadowColor = "rgba(255,255,255,1)";
+        ctx.shadowColor =
+            "rgba(255,255,255,1)";
+
         ctx.shadowBlur = 6;
 
         ctx.drawImage(
@@ -408,8 +606,12 @@ function drawPlayer() {
         );
 
         ctx.restore();
-    } else {
-        ctx.fillStyle = "#222";
+
+    }
+    else {
+
+        ctx.fillStyle =
+            "#222";
 
         ctx.fillRect(
             player.x,
@@ -417,36 +619,82 @@ function drawPlayer() {
             player.width,
             player.height
         );
+
     }
+
 }
 
-/* OBSTACLES */
+
+/* =========================================================
+   DESSIN DES CHOUX-FLEURS
+========================================================= */
 
 function drawObstacles() {
-    for (const obstacle of obstacles) {
-        ctx.fillStyle = "rgba(255,255,255,0.95)";
 
-        ctx.fillRect(
-            obstacle.x - 3,
-            obstacle.y - 3,
-            obstacle.width + 6,
-            obstacle.height + 3
-        );
+    for (
+        const obstacle of obstacles
+    ) {
 
-        ctx.fillStyle = "#181818";
+        if (
+            cauliflowerImage.complete &&
+            cauliflowerImage.naturalWidth > 0
+        ) {
 
-        ctx.fillRect(
-            obstacle.x,
-            obstacle.y,
-            obstacle.width,
-            obstacle.height
-        );
+            /*
+            Petite ombre blanche pour séparer
+            le chou-fleur du décor.
+            */
+
+            ctx.save();
+
+            ctx.shadowColor =
+                "rgba(255,255,255,0.95)";
+
+            ctx.shadowBlur = 5;
+
+            ctx.drawImage(
+                cauliflowerImage,
+
+                obstacle.x,
+                obstacle.y,
+
+                obstacle.width,
+                obstacle.height
+            );
+
+            ctx.restore();
+
+        }
+        else {
+
+            /*
+            Rectangle de secours si jamais
+            l'image ne charge pas.
+            */
+
+            ctx.fillStyle =
+                "#5d7d32";
+
+            ctx.fillRect(
+                obstacle.x,
+                obstacle.y,
+                obstacle.width,
+                obstacle.height
+            );
+
+        }
+
     }
+
 }
 
-/* DESSIN GENERAL */
+
+/* =========================================================
+   DESSIN GENERAL
+========================================================= */
 
 function draw() {
+
     ctx.clearRect(
         0,
         0,
@@ -454,11 +702,16 @@ function draw() {
         HEIGHT
     );
 
+
+    /* MONTREAL */
+
     drawBackground();
 
-    /* Ligne de sol discrète */
 
-    ctx.fillStyle = "rgba(255,255,255,0.45)";
+    /* LIGNE DU SOL */
+
+    ctx.fillStyle =
+        "rgba(255,255,255,0.45)";
 
     ctx.fillRect(
         0,
@@ -467,13 +720,29 @@ function draw() {
         2
     );
 
+
+    /* PERSONNAGE */
+
     drawPlayer();
+
+
+    /* CHOUX-FLEURS */
+
     drawObstacles();
 
-    /* ECRAN DE DEPART */
 
-    if (!running && !gameOver && !won) {
-        ctx.fillStyle = "rgba(255,255,255,0.82)";
+    /* =====================================================
+       DEPART
+    ===================================================== */
+
+    if (
+        !running &&
+        !gameOver &&
+        !won
+    ) {
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.82)";
 
         ctx.fillRect(
             WIDTH / 2 - 165,
@@ -482,9 +751,14 @@ function draw() {
             48
         );
 
-        ctx.fillStyle = "#111";
-        ctx.font = "bold 23px Arial";
-        ctx.textAlign = "center";
+        ctx.fillStyle =
+            "#111";
+
+        ctx.font =
+            "bold 23px Arial";
+
+        ctx.textAlign =
+            "center";
 
         ctx.fillText(
             "Clique sur « Commencer »",
@@ -492,13 +766,20 @@ function draw() {
             54
         );
 
-        ctx.textAlign = "left";
+        ctx.textAlign =
+            "left";
+
     }
 
-    /* GAME OVER */
+
+    /* =====================================================
+       GAME OVER
+    ===================================================== */
 
     if (gameOver) {
-        ctx.fillStyle = "rgba(255,255,255,0.82)";
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.82)";
 
         ctx.fillRect(
             WIDTH / 2 - 150,
@@ -507,9 +788,14 @@ function draw() {
             120
         );
 
-        ctx.fillStyle = "#222";
-        ctx.textAlign = "center";
-        ctx.font = "bold 32px Arial";
+        ctx.fillStyle =
+            "#222";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.font =
+            "bold 32px Arial";
 
         ctx.fillText(
             "GAME OVER",
@@ -517,21 +803,30 @@ function draw() {
             HEIGHT / 2 - 15
         );
 
-        ctx.font = "18px Arial";
+        ctx.font =
+            "18px Arial";
 
         ctx.fillText(
-            "Score : " + Math.floor(score),
+            "Score : " +
+            Math.floor(score),
             WIDTH / 2,
             HEIGHT / 2 + 20
         );
 
-        ctx.textAlign = "left";
+        ctx.textAlign =
+            "left";
+
     }
 
-    /* VICTOIRE */
+
+    /* =====================================================
+       VICTOIRE
+    ===================================================== */
 
     if (won) {
-        ctx.fillStyle = "rgba(255,255,255,0.90)";
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.90)";
 
         ctx.fillRect(
             55,
@@ -540,8 +835,11 @@ function draw() {
             275
         );
 
-        ctx.strokeStyle = "#222";
-        ctx.lineWidth = 4;
+        ctx.strokeStyle =
+            "#222";
+
+        ctx.lineWidth =
+            4;
 
         ctx.strokeRect(
             55,
@@ -550,10 +848,16 @@ function draw() {
             275
         );
 
-        ctx.fillStyle = "#222";
-        ctx.textAlign = "center";
 
-        ctx.font = "bold 34px Arial";
+        ctx.fillStyle =
+            "#222";
+
+        ctx.textAlign =
+            "center";
+
+
+        ctx.font =
+            "bold 34px Arial";
 
         ctx.fillText(
             "BRAVO !",
@@ -561,7 +865,9 @@ function draw() {
             155
         );
 
-        ctx.font = "bold 20px Arial";
+
+        ctx.font =
+            "bold 20px Arial";
 
         ctx.fillText(
             "T'as bien gagné un indice,",
@@ -575,7 +881,9 @@ function draw() {
             238
         );
 
-        ctx.font = "bold 23px Arial";
+
+        ctx.font =
+            "bold 23px Arial";
 
         ctx.fillText(
             "Le mot indice est :",
@@ -583,7 +891,9 @@ function draw() {
             285
         );
 
-        ctx.font = "bold 38px Arial";
+
+        ctx.font =
+            "bold 38px Arial";
 
         ctx.fillText(
             "SERPENT",
@@ -591,7 +901,9 @@ function draw() {
             330
         );
 
-        ctx.font = "18px Arial";
+
+        ctx.font =
+            "18px Arial";
 
         ctx.fillText(
             "Bonne chance pour la suite !",
@@ -599,92 +911,174 @@ function draw() {
             365
         );
 
-        ctx.textAlign = "left";
+
+        ctx.textAlign =
+            "left";
+
     }
+
 }
 
-/* BOUCLE */
+
+/* =========================================================
+   BOUCLE
+========================================================= */
 
 function gameLoop(timestamp) {
+
     if (!running) {
+
         draw();
         return;
+
     }
+
 
     let delta =
-        timestamp - lastTime;
+        timestamp -
+        lastTime;
 
-    lastTime = timestamp;
+    lastTime =
+        timestamp;
 
-    if (delta > 50) {
+
+    if (
+        delta > 50
+    ) {
+
         delta = 50;
+
     }
+
 
     update(delta);
+
     draw();
 
+
     if (running) {
-        requestAnimationFrame(gameLoop);
+
+        requestAnimationFrame(
+            gameLoop
+        );
+
     }
+
 }
 
-/* CONTROLES */
+
+/* =========================================================
+   CONTROLES
+========================================================= */
 
 startButton.addEventListener(
     "click",
     function() {
+
         startGame();
+
     }
 );
+
 
 document.addEventListener(
     "keydown",
     function(event) {
+
         if (
             event.code === "Space" ||
             event.code === "ArrowUp"
         ) {
+
             event.preventDefault();
+
             jump();
+
         }
+
     }
 );
+
 
 canvas.addEventListener(
     "pointerdown",
     function(event) {
+
         event.preventDefault();
+
         jump();
+
     }
 );
 
-/* CHARGEMENT */
 
-playerImage.onload = function() {
+/* =========================================================
+   CHARGEMENT DES IMAGES
+========================================================= */
+
+playerImage.onload =
+function() {
+
     draw();
+
 };
 
-backgroundImage.onload = function() {
+
+backgroundImage.onload =
+function() {
+
     draw();
+
 };
 
-playerImage.onerror = function() {
+
+cauliflowerImage.onload =
+function() {
+
+    draw();
+
+};
+
+
+playerImage.onerror =
+function() {
+
     console.log(
         "Impossible de charger player.png"
     );
 
     draw();
+
 };
 
-backgroundImage.onerror = function() {
+
+backgroundImage.onerror =
+function() {
+
     console.log(
         "Impossible de charger background.jpg"
     );
 
     draw();
+
 };
 
-/* INITIALISATION */
+
+cauliflowerImage.onerror =
+function() {
+
+    console.log(
+        "Impossible de charger cauliflower.png"
+    );
+
+    draw();
+
+};
+
+
+/* =========================================================
+   INITIALISATION
+========================================================= */
 
 resetGame();
 
