@@ -124,7 +124,9 @@ const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
 
 const GROUND = 440;
+
 const WIN_SCORE = 1997;
+const FAKE_BUG_SCORE = 1994;
 
 
 /* =========================================================
@@ -165,6 +167,7 @@ let obstacles = [];
 let running = false;
 let gameOver = false;
 let won = false;
+let fakeBug = false;
 
 let score = 0;
 let speed = 5;
@@ -193,7 +196,7 @@ function resetPlayer() {
 
 
 /* =========================================================
-   RESET
+   RESET INITIAL
 ========================================================= */
 
 function resetGame() {
@@ -208,6 +211,7 @@ function resetGame() {
 
     gameOver = false;
     won = false;
+    fakeBug = false;
     running = false;
 
     scoreDisplay.textContent = "Score : 0";
@@ -219,7 +223,7 @@ function resetGame() {
 
 
 /* =========================================================
-   DEMARRER
+   DEMARRER / RECOMMENCER
 ========================================================= */
 
 function startGame() {
@@ -234,7 +238,10 @@ function startGame() {
 
     gameOver = false;
     won = false;
+    fakeBug = false;
     running = true;
+
+    scoreDisplay.textContent = "Score : 0";
 
     lastTime = performance.now();
 
@@ -252,8 +259,8 @@ function startGame() {
 function jump() {
 
     /*
-    On ne lance PAS une nouvelle partie automatiquement
-    après un GAME OVER ou une victoire.
+    Le saut ne peut PAS démarrer/recommencer une partie.
+    Le bouton est nécessaire après une défaite.
     */
 
     if (!running) {
@@ -279,16 +286,18 @@ function createObstacle() {
     const randomType = Math.random();
 
     /*
-    15 % : bacon à attraper
-    30 % : soupe haute
-    55 % : chou-fleur bas
+    Répartition :
+
+    15 % bacon
+    30 % soupe
+    55 % chou-fleur
     */
 
     if (randomType < 0.15) {
 
         /*
-        BACON
-        Il faut le toucher.
+        BACON :
+        il faut l'attraper.
         */
 
         const size = 48;
@@ -300,8 +309,8 @@ function createObstacle() {
             x: WIDTH + 10,
 
             /*
-            Il flotte un peu au-dessus du sol,
-            donc il faut sauter pour le récupérer.
+            Bacon légèrement en hauteur :
+            il faut sauter pour l'attraper.
             */
 
             y: GROUND - 100,
@@ -312,11 +321,14 @@ function createObstacle() {
         });
 
     }
+
     else if (randomType < 0.45) {
 
         /*
-        SOUPE
-        Obstacle haut
+        SOUPE :
+        obstacle haut.
+        Taille réduite par rapport
+        à la première version.
         */
 
         const height =
@@ -338,11 +350,12 @@ function createObstacle() {
         });
 
     }
+
     else {
 
         /*
-        CHOU-FLEUR
-        Obstacle bas
+        CHOU-FLEUR :
+        obstacle bas.
         */
 
         const size =
@@ -371,6 +384,11 @@ function createObstacle() {
 
 function checkCollision(a, b) {
 
+    /*
+    Hitbox du personnage légèrement réduite
+    pour éviter les collisions frustrantes.
+    */
+
     const playerPaddingX = 8;
     const playerPaddingY = 5;
 
@@ -381,7 +399,7 @@ function checkCollision(a, b) {
     if (b.type === "soup") {
 
         /*
-        Hitbox plus indulgente que l'image.
+        Hitbox soupe volontairement indulgente.
         */
 
         obstaclePaddingX =
@@ -391,10 +409,11 @@ function checkCollision(a, b) {
             b.height * 0.10;
 
     }
+
     else if (b.type === "bacon") {
 
         /*
-        Bacon assez facile à attraper.
+        Bacon relativement facile à attraper.
         */
 
         obstaclePaddingX =
@@ -404,10 +423,13 @@ function checkCollision(a, b) {
             b.height * 0.08;
 
     }
+
     else {
 
         /*
-        Chou-fleur irrégulier.
+        Chou-fleur irrégulier :
+        hitbox légèrement plus petite
+        que l'image.
         */
 
         obstaclePaddingX =
@@ -449,13 +471,17 @@ function update(delta) {
     }
 
 
-    /* GRAVITE */
+    /* =====================================================
+       GRAVITE
+    ===================================================== */
 
     player.velocityY += 0.75;
     player.y += player.velocityY;
 
 
-    /* RETOUR AU SOL */
+    /* =====================================================
+       RETOUR AU SOL
+    ===================================================== */
 
     if (
         player.y >=
@@ -471,17 +497,20 @@ function update(delta) {
     }
 
 
-    /*
-    DIFFICULTE
-    +20 % d'accélération par rapport
-    à la version précédente.
-    */
+    /* =====================================================
+       DIFFICULTE PROGRESSIVE
+
+       Accélération augmentée d'environ 20 %
+       par rapport à la première version.
+    ===================================================== */
 
     speed +=
         0.000030 * delta;
 
 
-    /* APPARITION */
+    /* =====================================================
+       APPARITION DES OBSTACLES
+    ===================================================== */
 
     obstacleTimer -= delta;
 
@@ -496,6 +525,14 @@ function update(delta) {
                 1
             );
 
+
+        /*
+        Au début :
+        environ 1,3 à 1,9 seconde.
+
+        Vers la fin :
+        environ 0,85 à 1,25 seconde.
+        */
 
         const minimumDelay =
             1300 - (450 * progress);
@@ -512,7 +549,9 @@ function update(delta) {
     }
 
 
-    /* DEPLACEMENT / COLLISIONS */
+    /* =====================================================
+       DEPLACEMENT ET COLLISIONS
+    ===================================================== */
 
     for (
         let i = obstacles.length - 1;
@@ -529,11 +568,9 @@ function update(delta) {
             (delta / 16.67);
 
 
-        /*
-        =====================================================
-        COLLISION
-        =====================================================
-        */
+        /* =================================================
+           COLLISION
+        ================================================= */
 
         if (
             checkCollision(
@@ -544,8 +581,8 @@ function update(delta) {
 
             /*
             BACON :
-            toucher = réussite.
-            On le retire et le jeu continue.
+            le toucher = réussite.
+            Il disparaît.
             */
 
             if (
@@ -563,7 +600,7 @@ function update(delta) {
 
 
             /*
-            CHOU-FLEUR OU SOUPE :
+            SOUPE / CHOU-FLEUR :
             toucher = GAME OVER.
             */
 
@@ -573,11 +610,9 @@ function update(delta) {
         }
 
 
-        /*
-        =====================================================
-        SORTIE DE L'ECRAN
-        =====================================================
-        */
+        /* =================================================
+           OBJET SORTI DE L'ECRAN
+        ================================================= */
 
         if (
             obstacle.x +
@@ -586,7 +621,7 @@ function update(delta) {
         ) {
 
             /*
-            BACON RATÉ :
+            BACON raté :
             GAME OVER.
             */
 
@@ -601,7 +636,7 @@ function update(delta) {
 
 
             /*
-            Les autres obstacles disparaissent normalement.
+            Un obstacle normal est simplement supprimé.
             */
 
             obstacles.splice(
@@ -614,25 +649,75 @@ function update(delta) {
     }
 
 
-    /* SCORE */
+    /* =====================================================
+       SCORE
+    ===================================================== */
 
     score +=
         delta * 0.012;
 
 
-    /* VICTOIRE */
+    /* =====================================================
+       FAUX BUG À 1994
+
+       localStorage permet de mémoriser que le joueur
+       a déjà subi le faux bug sur ce navigateur.
+    ===================================================== */
+
+    const fakeBugAlreadySeen =
+        localStorage.getItem(
+            "ostieFakeBugSeen"
+        ) === "yes";
+
 
     if (
-        score >=
-        WIN_SCORE
+        !fakeBugAlreadySeen &&
+        score >= FAKE_BUG_SCORE
+    ) {
+
+        score =
+            FAKE_BUG_SCORE;
+
+
+        scoreDisplay.textContent =
+            "Score : " +
+            FAKE_BUG_SCORE;
+
+
+        /*
+        On mémorise immédiatement que le gag
+        a déjà eu lieu.
+        */
+
+        localStorage.setItem(
+            "ostieFakeBugSeen",
+            "yes"
+        );
+
+
+        triggerFakeBug();
+
+        return;
+
+    }
+
+
+    /* =====================================================
+       VICTOIRE À 1997
+    ===================================================== */
+
+    if (
+        score >= WIN_SCORE
     ) {
 
         score =
             WIN_SCORE;
 
+
         scoreDisplay.textContent =
             "Score : " +
             WIN_SCORE;
+
 
         winGame();
 
@@ -649,22 +734,44 @@ function update(delta) {
 
 
 /* =========================================================
-   GAME OVER
+   GAME OVER NORMAL
 ========================================================= */
 
 function endGame() {
 
     /*
-    On stoppe immédiatement la boucle.
+    Arrêt immédiat du jeu.
     Aucun redémarrage automatique.
     */
 
     running = false;
+
     gameOver = true;
     won = false;
+    fakeBug = false;
 
     startButton.textContent =
         "Recommencer";
+
+    draw();
+
+}
+
+
+/* =========================================================
+   FAUX BUG À 1994
+========================================================= */
+
+function triggerFakeBug() {
+
+    running = false;
+
+    gameOver = false;
+    won = false;
+    fakeBug = true;
+
+    startButton.textContent =
+        "Réessayer";
 
     draw();
 
@@ -678,7 +785,9 @@ function endGame() {
 function winGame() {
 
     running = false;
+
     gameOver = false;
+    fakeBug = false;
     won = true;
 
     startButton.textContent =
@@ -709,6 +818,7 @@ function drawBackground() {
         );
 
     }
+
     else {
 
         ctx.fillStyle =
@@ -723,6 +833,11 @@ function drawBackground() {
 
     }
 
+
+    /*
+    Voile blanc léger pour conserver
+    la lisibilité du jeu.
+    */
 
     ctx.fillStyle =
         "rgba(255,255,255,0.18)";
@@ -750,6 +865,7 @@ function drawPlayer() {
 
         ctx.save();
 
+
         ctx.shadowColor =
             "rgba(255,255,255,1)";
 
@@ -769,6 +885,7 @@ function drawPlayer() {
         ctx.restore();
 
     }
+
     else {
 
         ctx.fillStyle =
@@ -807,6 +924,7 @@ function drawObstacles() {
                 soupImage;
 
         }
+
         else if (
             obstacle.type === "bacon"
         ) {
@@ -815,6 +933,7 @@ function drawObstacles() {
                 baconImage;
 
         }
+
         else {
 
             imageToDraw =
@@ -832,8 +951,8 @@ function drawObstacles() {
 
 
             /*
-            Le bacon a un halo plus marqué,
-            pour signaler visuellement qu'il est spécial.
+            Bacon avec halo légèrement plus marqué
+            pour montrer qu'il est spécial.
             */
 
             if (
@@ -847,6 +966,7 @@ function drawObstacles() {
                     11;
 
             }
+
             else {
 
                 ctx.shadowColor =
@@ -872,7 +992,13 @@ function drawObstacles() {
             ctx.restore();
 
         }
+
         else {
+
+            /*
+            Rectangle de secours
+            si l'image ne charge pas.
+            */
 
             ctx.fillStyle =
                 "#555";
@@ -908,7 +1034,9 @@ function draw() {
     drawBackground();
 
 
-    /* LIGNE DU SOL */
+    /* =====================================================
+       LIGNE DU SOL
+    ===================================================== */
 
     ctx.fillStyle =
         "rgba(255,255,255,0.45)";
@@ -925,16 +1053,15 @@ function draw() {
     drawObstacles();
 
 
-    /*
-    =====================================================
-    ECRAN DE DEPART
-    =====================================================
-    */
+    /* =====================================================
+       ECRAN DE DEPART
+    ===================================================== */
 
     if (
         !running &&
         !gameOver &&
-        !won
+        !won &&
+        !fakeBug
     ) {
 
         ctx.fillStyle =
@@ -971,21 +1098,106 @@ function draw() {
     }
 
 
-    /*
-    =====================================================
-    GAME OVER
-    =====================================================
-    */
+    /* =====================================================
+       FAUX BUG À 1994
+    ===================================================== */
+
+    if (fakeBug) {
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.94)";
+
+        ctx.fillRect(
+            45,
+            120,
+            WIDTH - 90,
+            250
+        );
+
+
+        ctx.strokeStyle =
+            "#222";
+
+        ctx.lineWidth =
+            4;
+
+
+        ctx.strokeRect(
+            45,
+            120,
+            WIDTH - 90,
+            250
+        );
+
+
+        ctx.fillStyle =
+            "#222";
+
+        ctx.textAlign =
+            "center";
+
+
+        ctx.font =
+            "bold 29px Arial";
+
+
+        ctx.fillText(
+            "Oulah, on dirait qu'il y a eu un bug...",
+            WIDTH / 2,
+            175
+        );
+
+
+        ctx.font =
+            "21px Arial";
+
+
+        ctx.fillText(
+            "Frustrant.",
+            WIDTH / 2,
+            220
+        );
+
+
+        ctx.fillText(
+            "Mais réessaye, promis la prochaine fois",
+            WIDTH / 2,
+            262
+        );
+
+
+        ctx.fillText(
+            "ça devrait fonctionner !",
+            WIDTH / 2,
+            296
+        );
+
+
+        ctx.font =
+            "16px Arial";
+
+
+        ctx.fillText(
+            "Clique sur « Réessayer » pour recommencer.",
+            WIDTH / 2,
+            342
+        );
+
+
+        ctx.textAlign =
+            "left";
+
+    }
+
+
+    /* =====================================================
+       GAME OVER NORMAL
+    ===================================================== */
 
     if (gameOver) {
 
-        /*
-        On masque légèrement le décor
-        mais on garde le contexte visible.
-        */
-
         ctx.fillStyle =
-            "rgba(255,255,255,0.88)";
+            "rgba(255,255,255,0.90)";
 
         ctx.fillRect(
             WIDTH / 2 - 220,
@@ -1057,16 +1269,14 @@ function draw() {
     }
 
 
-    /*
-    =====================================================
-    VICTOIRE
-    =====================================================
-    */
+    /* =====================================================
+       VICTOIRE
+    ===================================================== */
 
     if (won) {
 
         ctx.fillStyle =
-            "rgba(255,255,255,0.90)";
+            "rgba(255,255,255,0.92)";
 
         ctx.fillRect(
             55,
@@ -1169,7 +1379,7 @@ function draw() {
 
 
 /* =========================================================
-   BOUCLE
+   BOUCLE PRINCIPALE
 ========================================================= */
 
 function gameLoop(timestamp) {
@@ -1189,6 +1399,11 @@ function gameLoop(timestamp) {
     lastTime =
         timestamp;
 
+
+    /*
+    Evite les énormes bonds si le navigateur
+    ralentit ou si l'onglet est brièvement suspendu.
+    */
 
     if (
         delta > 50
@@ -1224,9 +1439,8 @@ startButton.addEventListener(
     function() {
 
         /*
-        Le bouton est désormais LE SEUL
-        moyen de démarrer/recommencer après
-        une défaite ou une victoire.
+        Le bouton est le seul moyen de démarrer
+        ou recommencer une partie.
         */
 
         startGame();
