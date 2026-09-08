@@ -258,11 +258,6 @@ function startGame() {
 
 function jump() {
 
-    /*
-    Le saut ne peut PAS démarrer/recommencer une partie.
-    Le bouton est nécessaire après une défaite.
-    */
-
     if (!running) {
         return;
     }
@@ -308,11 +303,6 @@ function createObstacle() {
 
             x: WIDTH + 10,
 
-            /*
-            Bacon légèrement en hauteur :
-            il faut sauter pour l'attraper.
-            */
-
             y: GROUND - 100,
 
             width: size,
@@ -327,8 +317,6 @@ function createObstacle() {
         /*
         SOUPE :
         obstacle haut.
-        Taille réduite par rapport
-        à la première version.
         */
 
         const height =
@@ -384,11 +372,6 @@ function createObstacle() {
 
 function checkCollision(a, b) {
 
-    /*
-    Hitbox du personnage légèrement réduite
-    pour éviter les collisions frustrantes.
-    */
-
     const playerPaddingX = 8;
     const playerPaddingY = 5;
 
@@ -397,10 +380,6 @@ function checkCollision(a, b) {
 
 
     if (b.type === "soup") {
-
-        /*
-        Hitbox soupe volontairement indulgente.
-        */
 
         obstaclePaddingX =
             b.width * 0.16;
@@ -412,10 +391,6 @@ function checkCollision(a, b) {
 
     else if (b.type === "bacon") {
 
-        /*
-        Bacon relativement facile à attraper.
-        */
-
         obstaclePaddingX =
             b.width * 0.08;
 
@@ -425,12 +400,6 @@ function checkCollision(a, b) {
     }
 
     else {
-
-        /*
-        Chou-fleur irrégulier :
-        hitbox légèrement plus petite
-        que l'image.
-        */
 
         obstaclePaddingX =
             b.width * 0.12;
@@ -499,9 +468,6 @@ function update(delta) {
 
     /* =====================================================
        DIFFICULTE PROGRESSIVE
-
-       Accélération augmentée d'environ 20 %
-       par rapport à la première version.
     ===================================================== */
 
     speed +=
@@ -527,66 +493,66 @@ function update(delta) {
 
 
         /*
-        Au début :
-        environ 1,3 à 1,9 seconde.
+        Espacement volontairement irrégulier.
 
-        Vers la fin :
-        environ 0,85 à 1,25 seconde.
+        22 % : obstacle rapproché
+        60 % : espacement moyen
+        18 % : grand trou
+
+        Cela casse le rythme régulier.
         */
 
-        /*
-        
-Espacement volontairement irrégulier :
-- parfois très court
-- souvent moyen
-- parfois long
+        const roll =
+            Math.random();
 
-Cela évite que le joueur puisse simplement
-prendre un rythme régulier.
-*/
+        let baseDelay;
 
-const roll = Math.random();
 
-let baseDelay;
+        if (roll < 0.22) {
 
-if (roll < 0.22) {
+            /*
+            OBSTACLE RAPPROCHE
+            */
 
-    /*
-    22 % :
-    obstacle assez rapproché
-    */
+            baseDelay =
+                650
+                - (120 * progress)
+                + Math.random() * 220;
 
-    baseDelay =
-        650 - (120 * progress)
-        + Math.random() * 220;
+        }
 
-}
-else if (roll < 0.82) {
+        else if (roll < 0.82) {
 
-    /*
-    60 % :
-    espacement normal
-    */
+            /*
+            ESPACEMENT NORMAL
+            */
 
-    baseDelay =
-        1050 - (250 * progress)
-        + Math.random() * 550;
+            baseDelay =
+                1050
+                - (250 * progress)
+                + Math.random() * 550;
 
-}
-else {
+        }
 
-    /*
-    18 % :
-    grand trou
-    */
+        else {
 
-    baseDelay =
-        1650 - (250 * progress)
-        + Math.random() * 700;
+            /*
+            GRAND TROU
+            */
 
-}
+            baseDelay =
+                1650
+                - (250 * progress)
+                + Math.random() * 700;
 
-obstacleTimer = baseDelay;
+        }
+
+
+        obstacleTimer =
+            baseDelay;
+
+    }
+
 
     /* =====================================================
        DEPLACEMENT ET COLLISIONS
@@ -620,8 +586,7 @@ obstacleTimer = baseDelay;
 
             /*
             BACON :
-            le toucher = réussite.
-            Il disparaît.
+            toucher = réussite.
             */
 
             if (
@@ -675,7 +640,8 @@ obstacleTimer = baseDelay;
 
 
             /*
-            Un obstacle normal est simplement supprimé.
+            Obstacle classique :
+            suppression.
             */
 
             obstacles.splice(
@@ -698,9 +664,6 @@ obstacleTimer = baseDelay;
 
     /* =====================================================
        FAUX BUG À 1994
-
-       localStorage permet de mémoriser que le joueur
-       a déjà subi le faux bug sur ce navigateur.
     ===================================================== */
 
     const fakeBugAlreadySeen =
@@ -724,8 +687,8 @@ obstacleTimer = baseDelay;
 
 
         /*
-        On mémorise immédiatement que le gag
-        a déjà eu lieu.
+        Le faux bug ne se produira plus
+        sur ce navigateur.
         */
 
         localStorage.setItem(
@@ -777,11 +740,6 @@ obstacleTimer = baseDelay;
 ========================================================= */
 
 function endGame() {
-
-    /*
-    Arrêt immédiat du jeu.
-    Aucun redémarrage automatique.
-    */
 
     running = false;
 
@@ -872,11 +830,6 @@ function drawBackground() {
 
     }
 
-
-    /*
-    Voile blanc léger pour conserver
-    la lisibilité du jeu.
-    */
 
     ctx.fillStyle =
         "rgba(255,255,255,0.18)";
@@ -989,11 +942,6 @@ function drawObstacles() {
             ctx.save();
 
 
-            /*
-            Bacon avec halo légèrement plus marqué
-            pour montrer qu'il est spécial.
-            */
-
             if (
                 obstacle.type === "bacon"
             ) {
@@ -1033,11 +981,6 @@ function drawObstacles() {
         }
 
         else {
-
-            /*
-            Rectangle de secours
-            si l'image ne charge pas.
-            */
 
             ctx.fillStyle =
                 "#555";
@@ -1439,11 +1382,6 @@ function gameLoop(timestamp) {
         timestamp;
 
 
-    /*
-    Evite les énormes bonds si le navigateur
-    ralentit ou si l'onglet est brièvement suspendu.
-    */
-
     if (
         delta > 50
     ) {
@@ -1476,11 +1414,6 @@ function gameLoop(timestamp) {
 startButton.addEventListener(
     "click",
     function() {
-
-        /*
-        Le bouton est le seul moyen de démarrer
-        ou recommencer une partie.
-        */
 
         startGame();
 
