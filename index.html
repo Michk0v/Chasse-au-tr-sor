@@ -143,6 +143,9 @@ cauliflowerImage.src = "cauliflower.png";
 const soupImage = new Image();
 soupImage.src = "soup.png";
 
+const baconImage = new Image();
+baconImage.src = "bacon.png";
+
 
 /* =========================================================
    HTML
@@ -248,8 +251,12 @@ function startGame() {
 
 function jump() {
 
+    /*
+    On ne lance PAS une nouvelle partie automatiquement
+    après un GAME OVER ou une victoire.
+    */
+
     if (!running) {
-        startGame();
         return;
     }
 
@@ -264,25 +271,52 @@ function jump() {
 
 
 /* =========================================================
-   CREATION DES OBSTACLES
+   CREATION DES OBSTACLES / OBJETS
 ========================================================= */
 
 function createObstacle() {
 
+    const randomType = Math.random();
+
     /*
-    Environ 35 % de briques de soupe
-    et 65 % de choux-fleurs.
+    15 % : bacon à attraper
+    30 % : soupe haute
+    55 % : chou-fleur bas
     */
 
-    const isTall =
-        Math.random() < 0.35;
-
-
-    if (isTall) {
+    if (randomType < 0.15) {
 
         /*
-        OBSTACLE HAUT :
-        brique de soupe
+        BACON
+        Il faut le toucher.
+        */
+
+        const size = 48;
+
+        obstacles.push({
+
+            type: "bacon",
+
+            x: WIDTH + 10,
+
+            /*
+            Il flotte un peu au-dessus du sol,
+            donc il faut sauter pour le récupérer.
+            */
+
+            y: GROUND - 100,
+
+            width: size,
+            height: size
+
+        });
+
+    }
+    else if (randomType < 0.45) {
+
+        /*
+        SOUPE
+        Obstacle haut
         */
 
         const height =
@@ -296,7 +330,6 @@ function createObstacle() {
             type: "soup",
 
             x: WIDTH + 10,
-
             y: GROUND - height,
 
             width: width,
@@ -308,8 +341,8 @@ function createObstacle() {
     else {
 
         /*
-        OBSTACLE BAS :
-        chou-fleur
+        CHOU-FLEUR
+        Obstacle bas
         */
 
         const size =
@@ -320,7 +353,6 @@ function createObstacle() {
             type: "cauliflower",
 
             x: WIDTH + 10,
-
             y: GROUND - size,
 
             width: size,
@@ -339,11 +371,6 @@ function createObstacle() {
 
 function checkCollision(a, b) {
 
-    /*
-    On réduit légèrement les zones de collision
-    pour rester juste visuellement.
-    */
-
     const playerPaddingX = 8;
     const playerPaddingY = 5;
 
@@ -354,8 +381,7 @@ function checkCollision(a, b) {
     if (b.type === "soup") {
 
         /*
-        La brique est assez rectangulaire,
-        donc collision assez proche de l'image.
+        Hitbox plus indulgente que l'image.
         */
 
         obstaclePaddingX =
@@ -365,11 +391,23 @@ function checkCollision(a, b) {
             b.height * 0.10;
 
     }
+    else if (b.type === "bacon") {
+
+        /*
+        Bacon assez facile à attraper.
+        */
+
+        obstaclePaddingX =
+            b.width * 0.08;
+
+        obstaclePaddingTop =
+            b.height * 0.08;
+
+    }
     else {
 
         /*
-        Le chou-fleur est irrégulier :
-        zone de collision un peu plus petite.
+        Chou-fleur irrégulier.
         */
 
         obstaclePaddingX =
@@ -434,24 +472,16 @@ function update(delta) {
 
 
     /*
-    =====================================================
-    DIFFICULTE PROGRESSIVE
-
-    Ancienne valeur :
-    0.000025
-
-    Nouvelle valeur :
-    0.000030
-
-    Soit environ +20 % d'accélération.
-    =====================================================
+    DIFFICULTE
+    +20 % d'accélération par rapport
+    à la version précédente.
     */
 
     speed +=
         0.000030 * delta;
 
 
-    /* APPARITION DES OBSTACLES */
+    /* APPARITION */
 
     obstacleTimer -= delta;
 
@@ -467,19 +497,12 @@ function update(delta) {
             );
 
 
-        /*
-        Début :
-        environ 1,3 à 1,9 seconde
-
-        Fin :
-        environ 0,85 à 1,25 seconde
-        */
-
         const minimumDelay =
             1300 - (450 * progress);
 
         const randomDelay =
             600 - (200 * progress);
+
 
         obstacleTimer =
             minimumDelay +
@@ -489,7 +512,7 @@ function update(delta) {
     }
 
 
-    /* DEPLACEMENT DES OBSTACLES */
+    /* DEPLACEMENT / COLLISIONS */
 
     for (
         let i = obstacles.length - 1;
@@ -500,12 +523,17 @@ function update(delta) {
         const obstacle =
             obstacles[i];
 
+
         obstacle.x -=
             speed *
             (delta / 16.67);
 
 
-        /* COLLISION */
+        /*
+        =====================================================
+        COLLISION
+        =====================================================
+        */
 
         if (
             checkCollision(
@@ -514,19 +542,67 @@ function update(delta) {
             )
         ) {
 
+            /*
+            BACON :
+            toucher = réussite.
+            On le retire et le jeu continue.
+            */
+
+            if (
+                obstacle.type === "bacon"
+            ) {
+
+                obstacles.splice(
+                    i,
+                    1
+                );
+
+                continue;
+
+            }
+
+
+            /*
+            CHOU-FLEUR OU SOUPE :
+            toucher = GAME OVER.
+            */
+
             endGame();
             return;
 
         }
 
 
-        /* SUPPRESSION HORS ECRAN */
+        /*
+        =====================================================
+        SORTIE DE L'ECRAN
+        =====================================================
+        */
 
         if (
             obstacle.x +
             obstacle.width <
             0
         ) {
+
+            /*
+            BACON RATÉ :
+            GAME OVER.
+            */
+
+            if (
+                obstacle.type === "bacon"
+            ) {
+
+                endGame();
+                return;
+
+            }
+
+
+            /*
+            Les autres obstacles disparaissent normalement.
+            */
 
             obstacles.splice(
                 i,
@@ -577,6 +653,11 @@ function update(delta) {
 ========================================================= */
 
 function endGame() {
+
+    /*
+    On stoppe immédiatement la boucle.
+    Aucun redémarrage automatique.
+    */
 
     running = false;
     gameOver = true;
@@ -643,10 +724,6 @@ function drawBackground() {
     }
 
 
-    /*
-    Voile blanc léger.
-    */
-
     ctx.fillStyle =
         "rgba(255,255,255,0.18)";
 
@@ -679,6 +756,7 @@ function drawPlayer() {
         ctx.shadowBlur =
             6;
 
+
         ctx.drawImage(
             playerImage,
             player.x,
@@ -686,6 +764,7 @@ function drawPlayer() {
             player.width,
             player.height
         );
+
 
         ctx.restore();
 
@@ -708,7 +787,7 @@ function drawPlayer() {
 
 
 /* =========================================================
-   DESSIN DES OBSTACLES
+   DESSIN DES OBSTACLES / BACON
 ========================================================= */
 
 function drawObstacles() {
@@ -728,6 +807,14 @@ function drawObstacles() {
                 soupImage;
 
         }
+        else if (
+            obstacle.type === "bacon"
+        ) {
+
+            imageToDraw =
+                baconImage;
+
+        }
         else {
 
             imageToDraw =
@@ -743,11 +830,32 @@ function drawObstacles() {
 
             ctx.save();
 
-            ctx.shadowColor =
-                "rgba(255,255,255,0.95)";
 
-            ctx.shadowBlur =
-                5;
+            /*
+            Le bacon a un halo plus marqué,
+            pour signaler visuellement qu'il est spécial.
+            */
+
+            if (
+                obstacle.type === "bacon"
+            ) {
+
+                ctx.shadowColor =
+                    "rgba(255,255,255,1)";
+
+                ctx.shadowBlur =
+                    11;
+
+            }
+            else {
+
+                ctx.shadowColor =
+                    "rgba(255,255,255,0.95)";
+
+                ctx.shadowBlur =
+                    5;
+
+            }
 
 
             ctx.drawImage(
@@ -765,11 +873,6 @@ function drawObstacles() {
 
         }
         else {
-
-            /*
-            Rectangle de secours
-            si une image ne charge pas.
-            */
 
             ctx.fillStyle =
                 "#555";
@@ -819,13 +922,14 @@ function draw() {
 
 
     drawPlayer();
-
     drawObstacles();
 
 
-    /* =====================================================
-       DEPART
-    ===================================================== */
+    /*
+    =====================================================
+    ECRAN DE DEPART
+    =====================================================
+    */
 
     if (
         !running &&
@@ -843,6 +947,7 @@ function draw() {
             48
         );
 
+
         ctx.fillStyle =
             "#111";
 
@@ -852,11 +957,13 @@ function draw() {
         ctx.textAlign =
             "center";
 
+
         ctx.fillText(
             "Clique sur « Commencer »",
             WIDTH / 2,
             54
         );
+
 
         ctx.textAlign =
             "left";
@@ -864,20 +971,42 @@ function draw() {
     }
 
 
-    /* =====================================================
-       GAME OVER
-    ===================================================== */
+    /*
+    =====================================================
+    GAME OVER
+    =====================================================
+    */
 
     if (gameOver) {
 
+        /*
+        On masque légèrement le décor
+        mais on garde le contexte visible.
+        */
+
         ctx.fillStyle =
-            "rgba(255,255,255,0.82)";
+            "rgba(255,255,255,0.88)";
 
         ctx.fillRect(
-            WIDTH / 2 - 150,
-            HEIGHT / 2 - 70,
-            300,
-            120
+            WIDTH / 2 - 220,
+            HEIGHT / 2 - 90,
+            440,
+            165
+        );
+
+
+        ctx.strokeStyle =
+            "#222";
+
+        ctx.lineWidth =
+            4;
+
+
+        ctx.strokeRect(
+            WIDTH / 2 - 220,
+            HEIGHT / 2 - 90,
+            440,
+            165
         );
 
 
@@ -887,24 +1016,38 @@ function draw() {
         ctx.textAlign =
             "center";
 
+
         ctx.font =
-            "bold 32px Arial";
+            "bold 31px Arial";
+
 
         ctx.fillText(
-            "GAME OVER",
+            "Accroche toi petit hérisson",
             WIDTH / 2,
-            HEIGHT / 2 - 15
+            HEIGHT / 2 - 28
         );
 
 
         ctx.font =
             "18px Arial";
 
+
         ctx.fillText(
             "Score : " +
             Math.floor(score),
             WIDTH / 2,
-            HEIGHT / 2 + 20
+            HEIGHT / 2 + 12
+        );
+
+
+        ctx.font =
+            "16px Arial";
+
+
+        ctx.fillText(
+            "Clique sur « Recommencer » pour retenter ta chance.",
+            WIDTH / 2,
+            HEIGHT / 2 + 48
         );
 
 
@@ -914,9 +1057,11 @@ function draw() {
     }
 
 
-    /* =====================================================
-       VICTOIRE
-    ===================================================== */
+    /*
+    =====================================================
+    VICTOIRE
+    =====================================================
+    */
 
     if (won) {
 
@@ -937,6 +1082,7 @@ function draw() {
         ctx.lineWidth =
             4;
 
+
         ctx.strokeRect(
             55,
             105,
@@ -955,6 +1101,7 @@ function draw() {
         ctx.font =
             "bold 34px Arial";
 
+
         ctx.fillText(
             "BRAVO !",
             WIDTH / 2,
@@ -964,6 +1111,7 @@ function draw() {
 
         ctx.font =
             "bold 20px Arial";
+
 
         ctx.fillText(
             "T'as bien gagné un indice,",
@@ -982,6 +1130,7 @@ function draw() {
         ctx.font =
             "bold 23px Arial";
 
+
         ctx.fillText(
             "Le mot indice est :",
             WIDTH / 2,
@@ -992,6 +1141,7 @@ function draw() {
         ctx.font =
             "bold 38px Arial";
 
+
         ctx.fillText(
             "SERPENT",
             WIDTH / 2,
@@ -1001,6 +1151,7 @@ function draw() {
 
         ctx.font =
             "18px Arial";
+
 
         ctx.fillText(
             "Bonne chance pour la suite !",
@@ -1072,6 +1223,12 @@ startButton.addEventListener(
     "click",
     function() {
 
+        /*
+        Le bouton est désormais LE SEUL
+        moyen de démarrer/recommencer après
+        une défaite ou une victoire.
+        */
+
         startGame();
 
     }
@@ -1137,6 +1294,12 @@ function() {
 };
 
 
+baconImage.onload =
+function() {
+    draw();
+};
+
+
 playerImage.onerror =
 function() {
 
@@ -1178,6 +1341,18 @@ function() {
 
     console.log(
         "Impossible de charger soup.png"
+    );
+
+    draw();
+
+};
+
+
+baconImage.onerror =
+function() {
+
+    console.log(
+        "Impossible de charger bacon.png"
     );
 
     draw();
