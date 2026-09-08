@@ -534,20 +534,59 @@ function update(delta) {
         environ 0,85 à 1,25 seconde.
         */
 
-        const minimumDelay =
-            1300 - (450 * progress);
+        /*
+        
+Espacement volontairement irrégulier :
+- parfois très court
+- souvent moyen
+- parfois long
 
-        const randomDelay =
-            600 - (200 * progress);
+Cela évite que le joueur puisse simplement
+prendre un rythme régulier.
+*/
 
+const roll = Math.random();
 
-        obstacleTimer =
-            minimumDelay +
-            Math.random() *
-            randomDelay;
+let baseDelay;
 
-    }
+if (roll < 0.22) {
 
+    /*
+    22 % :
+    obstacle assez rapproché
+    */
+
+    baseDelay =
+        650 - (120 * progress)
+        + Math.random() * 220;
+
+}
+else if (roll < 0.82) {
+
+    /*
+    60 % :
+    espacement normal
+    */
+
+    baseDelay =
+        1050 - (250 * progress)
+        + Math.random() * 550;
+
+}
+else {
+
+    /*
+    18 % :
+    grand trou
+    */
+
+    baseDelay =
+        1650 - (250 * progress)
+        + Math.random() * 700;
+
+}
+
+obstacleTimer = baseDelay;
 
     /* =====================================================
        DEPLACEMENT ET COLLISIONS
