@@ -140,6 +140,9 @@ backgroundImage.src = "background.jpg";
 const cauliflowerImage = new Image();
 cauliflowerImage.src = "cauliflower.png";
 
+const soupImage = new Image();
+soupImage.src = "soup.png";
+
 
 /* =========================================================
    HTML
@@ -246,10 +249,8 @@ function startGame() {
 function jump() {
 
     if (!running) {
-
         startGame();
         return;
-
     }
 
     if (!player.jumping) {
@@ -263,29 +264,71 @@ function jump() {
 
 
 /* =========================================================
-   CREATION DES CHOUX-FLEURS
+   CREATION DES OBSTACLES
 ========================================================= */
 
 function createObstacle() {
 
     /*
-    Les choux-fleurs ont une taille légèrement
-    différente à chaque apparition.
+    Environ 35 % de briques de soupe
+    et 65 % de choux-fleurs.
     */
 
-    const size =
-        55 + Math.random() * 15;
+    const isTall =
+        Math.random() < 0.35;
 
-    obstacles.push({
 
-        x: WIDTH + 10,
+    if (isTall) {
 
-        y: GROUND - size,
+        /*
+        OBSTACLE HAUT :
+        brique de soupe
+        */
 
-        width: size,
-        height: size
+        const height =
+            105 + Math.random() * 10;
 
-    });
+        const width =
+            58 + Math.random() * 6;
+
+        obstacles.push({
+
+            type: "soup",
+
+            x: WIDTH + 10,
+
+            y: GROUND - height,
+
+            width: width,
+            height: height
+
+        });
+
+    }
+    else {
+
+        /*
+        OBSTACLE BAS :
+        chou-fleur
+        */
+
+        const size =
+            52 + Math.random() * 15;
+
+        obstacles.push({
+
+            type: "cauliflower",
+
+            x: WIDTH + 10,
+
+            y: GROUND - size,
+
+            width: size,
+            height: size
+
+        });
+
+    }
 
 }
 
@@ -297,35 +340,60 @@ function createObstacle() {
 function checkCollision(a, b) {
 
     /*
-    La boîte de collision du chou-fleur est volontairement
-    légèrement plus petite que l'image.
-
-    Cela évite de mourir alors que le personnage semble
-    visuellement avoir évité une feuille extérieure.
+    On réduit légèrement les zones de collision
+    pour rester juste visuellement.
     */
 
     const playerPaddingX = 8;
     const playerPaddingY = 5;
 
-    const cauliflowerPaddingX =
-        b.width * 0.12;
+    let obstaclePaddingX;
+    let obstaclePaddingTop;
 
-    const cauliflowerPaddingTop =
-        b.height * 0.10;
+
+    if (b.type === "soup") {
+
+        /*
+        La brique est assez rectangulaire,
+        donc collision assez proche de l'image.
+        */
+
+        obstaclePaddingX =
+            b.width * 0.08;
+
+        obstaclePaddingTop =
+            b.height * 0.04;
+
+    }
+    else {
+
+        /*
+        Le chou-fleur est irrégulier :
+        zone de collision un peu plus petite.
+        */
+
+        obstaclePaddingX =
+            b.width * 0.12;
+
+        obstaclePaddingTop =
+            b.height * 0.10;
+
+    }
+
 
     return (
 
         a.x + playerPaddingX <
-        b.x + b.width - cauliflowerPaddingX &&
+        b.x + b.width - obstaclePaddingX &&
 
         a.x + a.width - playerPaddingX >
-        b.x + cauliflowerPaddingX &&
+        b.x + obstaclePaddingX &&
 
         a.y + playerPaddingY <
         b.y + b.height &&
 
         a.y + a.height - playerPaddingY >
-        b.y + cauliflowerPaddingTop
+        b.y + obstaclePaddingTop
 
     );
 
@@ -365,13 +433,25 @@ function update(delta) {
     }
 
 
-    /* DIFFICULTE PROGRESSIVE */
+    /*
+    =====================================================
+    DIFFICULTE PROGRESSIVE
+
+    Ancienne valeur :
+    0.000025
+
+    Nouvelle valeur :
+    0.000030
+
+    Soit environ +20 % d'accélération.
+    =====================================================
+    */
 
     speed +=
-        0.000025 * delta;
+        0.000030 * delta;
 
 
-    /* APPARITION DES CHOUX-FLEURS */
+    /* APPARITION DES OBSTACLES */
 
     obstacleTimer -= delta;
 
@@ -379,18 +459,20 @@ function update(delta) {
 
         createObstacle();
 
+
         const progress =
             Math.min(
                 score / WIN_SCORE,
                 1
             );
 
-        /*
-        Au début :
-        environ 1,3 à 1,9 seconde.
 
-        Vers la fin :
-        environ 0,85 à 1,25 seconde.
+        /*
+        Début :
+        environ 1,3 à 1,9 seconde
+
+        Fin :
+        environ 0,85 à 1,25 seconde
         */
 
         const minimumDelay =
@@ -407,7 +489,7 @@ function update(delta) {
     }
 
 
-    /* DEPLACEMENT */
+    /* DEPLACEMENT DES OBSTACLES */
 
     for (
         let i = obstacles.length - 1;
@@ -438,7 +520,7 @@ function update(delta) {
         }
 
 
-        /* SORTIE DE L'ECRAN */
+        /* SUPPRESSION HORS ECRAN */
 
         if (
             obstacle.x +
@@ -562,8 +644,7 @@ function drawBackground() {
 
 
     /*
-    Voile blanc pour que le personnage
-    et les choux-fleurs ressortent.
+    Voile blanc léger.
     */
 
     ctx.fillStyle =
@@ -595,7 +676,8 @@ function drawPlayer() {
         ctx.shadowColor =
             "rgba(255,255,255,1)";
 
-        ctx.shadowBlur = 6;
+        ctx.shadowBlur =
+            6;
 
         ctx.drawImage(
             playerImage,
@@ -626,7 +708,7 @@ function drawPlayer() {
 
 
 /* =========================================================
-   DESSIN DES CHOUX-FLEURS
+   DESSIN DES OBSTACLES
 ========================================================= */
 
 function drawObstacles() {
@@ -635,25 +717,41 @@ function drawObstacles() {
         const obstacle of obstacles
     ) {
 
+        let imageToDraw;
+
+
         if (
-            cauliflowerImage.complete &&
-            cauliflowerImage.naturalWidth > 0
+            obstacle.type === "soup"
         ) {
 
-            /*
-            Petite ombre blanche pour séparer
-            le chou-fleur du décor.
-            */
+            imageToDraw =
+                soupImage;
+
+        }
+        else {
+
+            imageToDraw =
+                cauliflowerImage;
+
+        }
+
+
+        if (
+            imageToDraw.complete &&
+            imageToDraw.naturalWidth > 0
+        ) {
 
             ctx.save();
 
             ctx.shadowColor =
                 "rgba(255,255,255,0.95)";
 
-            ctx.shadowBlur = 5;
+            ctx.shadowBlur =
+                5;
+
 
             ctx.drawImage(
-                cauliflowerImage,
+                imageToDraw,
 
                 obstacle.x,
                 obstacle.y,
@@ -662,18 +760,19 @@ function drawObstacles() {
                 obstacle.height
             );
 
+
             ctx.restore();
 
         }
         else {
 
             /*
-            Rectangle de secours si jamais
-            l'image ne charge pas.
+            Rectangle de secours
+            si une image ne charge pas.
             */
 
             ctx.fillStyle =
-                "#5d7d32";
+                "#555";
 
             ctx.fillRect(
                 obstacle.x,
@@ -703,8 +802,6 @@ function draw() {
     );
 
 
-    /* MONTREAL */
-
     drawBackground();
 
 
@@ -721,12 +818,7 @@ function draw() {
     );
 
 
-    /* PERSONNAGE */
-
     drawPlayer();
-
-
-    /* CHOUX-FLEURS */
 
     drawObstacles();
 
@@ -788,6 +880,7 @@ function draw() {
             120
         );
 
+
         ctx.fillStyle =
             "#222";
 
@@ -803,6 +896,7 @@ function draw() {
             HEIGHT / 2 - 15
         );
 
+
         ctx.font =
             "18px Arial";
 
@@ -812,6 +906,7 @@ function draw() {
             WIDTH / 2,
             HEIGHT / 2 + 20
         );
+
 
         ctx.textAlign =
             "left";
@@ -834,6 +929,7 @@ function draw() {
             WIDTH - 110,
             275
         );
+
 
         ctx.strokeStyle =
             "#222";
@@ -874,6 +970,7 @@ function draw() {
             WIDTH / 2,
             205
         );
+
 
         ctx.fillText(
             "ostie de française...",
@@ -1018,25 +1115,25 @@ canvas.addEventListener(
 
 playerImage.onload =
 function() {
-
     draw();
-
 };
 
 
 backgroundImage.onload =
 function() {
-
     draw();
-
 };
 
 
 cauliflowerImage.onload =
 function() {
-
     draw();
+};
 
+
+soupImage.onload =
+function() {
+    draw();
 };
 
 
@@ -1069,6 +1166,18 @@ function() {
 
     console.log(
         "Impossible de charger cauliflower.png"
+    );
+
+    draw();
+
+};
+
+
+soupImage.onerror =
+function() {
+
+    console.log(
+        "Impossible de charger soup.png"
     );
 
     draw();
