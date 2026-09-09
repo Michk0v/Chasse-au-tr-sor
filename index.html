@@ -15,42 +15,114 @@
     html,
     body {
         margin: 0;
+        width: 100%;
         min-height: 100%;
     }
 
     body {
-        padding: 20px;
         background: #f5f0e7;
         font-family: Arial, sans-serif;
+        color: #222;
+    }
+
+
+    /* =====================================================
+       ECRAN D'ACCUEIL MOBILE
+    ===================================================== */
+
+    #mobileStartScreen {
+        display: none;
+
+        position: fixed;
+        inset: 0;
+
+        z-index: 99999;
+
+        background: #f5f0e7;
+
+        align-items: center;
+        justify-content: center;
+
+        padding: 30px;
+
+        text-align: center;
+    }
+
+
+    .mobile-start-content {
+        max-width: 420px;
+        width: 100%;
+    }
+
+
+    .mobile-start-content h1 {
+        margin: 0 0 18px 0;
+        font-size: 34px;
+    }
+
+
+    .mobile-start-content p {
+        margin: 0 0 24px 0;
+
+        font-size: 18px;
+        line-height: 1.45;
+
+        color: #555;
+    }
+
+
+    #fullscreenButton {
+        border: none;
+
+        background: #222;
+        color: white;
+
+        padding: 17px 28px;
+
+        border-radius: 10px;
+
+        font-size: 20px;
+        font-weight: bold;
+
+        cursor: pointer;
+    }
+
+
+    /* =====================================================
+       PAGE NORMALE / PC
+    ===================================================== */
+
+    #page {
+        min-height: 100vh;
 
         display: flex;
         justify-content: center;
         align-items: center;
 
-        min-height: 100vh;
+        padding: 20px;
     }
 
-
-    /* =====================================================
-       CONTENEUR GENERAL
-    ===================================================== */
 
     .game-container {
         width: 100%;
         max-width: 850px;
+
         text-align: center;
     }
 
 
     h1 {
         margin: 0 0 8px 0;
+
         font-size: 34px;
+
         color: #151515;
     }
 
 
     .subtitle {
         margin-bottom: 16px;
+
         font-size: 18px;
         color: #666;
         font-weight: bold;
@@ -114,6 +186,7 @@
 
     .hint {
         margin-top: 12px;
+
         font-size: 14px;
         color: #666;
     }
@@ -121,202 +194,17 @@
 
 
     /* =====================================================
-       ECRAN "TOURNE TON TELEPHONE"
+       MOBILE AVANT LE PLEIN ECRAN
     ===================================================== */
 
-    #rotate-screen {
+    @media (pointer: coarse) {
 
-        display: none;
-
-        position: fixed;
-
-        inset: 0;
-
-        z-index: 99999;
-
-        background: #f5f0e7;
-
-        align-items: center;
-        justify-content: center;
-
-        text-align: center;
-
-        padding: 30px;
-    }
-
-
-    .rotate-content {
-
-        max-width: 360px;
-
-        color: #222;
-    }
-
-
-    .rotate-icon {
-
-        font-size: 70px;
-
-        margin-bottom: 20px;
-
-        animation: rotatePhone 1.8s ease-in-out infinite alternate;
-    }
-
-
-    .rotate-content h2 {
-
-        font-size: 27px;
-
-        margin: 0 0 14px 0;
-    }
-
-
-    .rotate-content p {
-
-        font-size: 18px;
-
-        line-height: 1.4;
-
-        margin: 0;
-    }
-
-
-    @keyframes rotatePhone {
-
-        from {
-            transform: rotate(0deg);
-        }
-
-        to {
-            transform: rotate(90deg);
-        }
-
-    }
-
-
-
-    /* =====================================================
-       SMARTPHONE EN PORTRAIT
-    ===================================================== */
-
-    @media
-    (max-width: 900px)
-    and (orientation: portrait) {
-
-        #rotate-screen {
+        #mobileStartScreen {
             display: flex;
         }
 
-    }
-
-
-
-    /* =====================================================
-       SMARTPHONE EN PAYSAGE
-    ===================================================== */
-
-    @media
-    (max-height: 600px)
-    and (orientation: landscape) {
-
-        html,
-        body {
-
-            width: 100%;
-            height: 100%;
-
-            overflow: hidden;
-        }
-
-
-        body {
-
-            padding:
-                max(3px, env(safe-area-inset-top))
-                max(3px, env(safe-area-inset-right))
-                max(3px, env(safe-area-inset-bottom))
-                max(3px, env(safe-area-inset-left));
-
-            align-items: center;
-        }
-
-
-        .game-container {
-
-            width: 100%;
-            height: 100%;
-
-            max-width: none;
-
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-
-        /*
-        Sur téléphone en paysage, on cache le titre,
-        sous-titre et aide pour consacrer presque
-        tout l'écran au jeu.
-        */
-
-        h1,
-        .subtitle,
-        .hint {
-
+        #page {
             display: none;
-        }
-
-
-        canvas {
-
-            width:
-                min(
-                    100vw,
-                    calc((100vh - 56px) * 1.6)
-                );
-
-            height: auto;
-
-            max-height:
-                calc(100vh - 56px);
-
-            border-width: 2px;
-
-            border-radius: 5px;
-        }
-
-
-        .info {
-
-            width:
-                min(
-                    100vw,
-                    calc((100vh - 56px) * 1.6)
-                );
-
-            margin-top: 4px;
-
-            padding: 0 6px;
-
-            flex-shrink: 0;
-        }
-
-
-        #score {
-
-            font-size: 15px;
-        }
-
-
-        button {
-
-            padding: 7px 15px;
-
-            font-size: 14px;
-
-            border-radius: 6px;
         }
 
     }
@@ -327,7 +215,7 @@
        MODE PLEIN ECRAN
     ===================================================== */
 
-    .game-container:fullscreen {
+    #gameContainer:fullscreen {
 
         width: 100vw;
         height: 100vh;
@@ -337,51 +225,52 @@
         background: #f5f0e7;
 
         padding:
-            max(3px, env(safe-area-inset-top))
-            max(3px, env(safe-area-inset-right))
-            max(3px, env(safe-area-inset-bottom))
-            max(3px, env(safe-area-inset-left));
+            max(2px, env(safe-area-inset-top))
+            max(2px, env(safe-area-inset-right))
+            max(2px, env(safe-area-inset-bottom))
+            max(2px, env(safe-area-inset-left));
 
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+
+        overflow: hidden;
     }
 
 
-    .game-container:fullscreen h1,
-    .game-container:fullscreen .subtitle,
-    .game-container:fullscreen .hint {
+    #gameContainer:fullscreen h1,
+    #gameContainer:fullscreen .subtitle,
+    #gameContainer:fullscreen .hint {
 
         display: none;
     }
 
 
-    .game-container:fullscreen canvas {
+    #gameContainer:fullscreen canvas {
 
         width:
             min(
                 100vw,
-                calc((100vh - 56px) * 1.6)
+                calc((100vh - 54px) * 1.6)
             );
 
         height: auto;
 
         max-height:
-            calc(100vh - 56px);
+            calc(100vh - 54px);
 
         border-width: 2px;
-
-        border-radius: 5px;
+        border-radius: 4px;
     }
 
 
-    .game-container:fullscreen .info {
+    #gameContainer:fullscreen .info {
 
         width:
             min(
                 100vw,
-                calc((100vh - 56px) * 1.6)
+                calc((100vh - 54px) * 1.6)
             );
 
         margin-top: 4px;
@@ -390,17 +279,19 @@
     }
 
 
-    .game-container:fullscreen #score {
+    #gameContainer:fullscreen #score {
 
         font-size: 15px;
     }
 
 
-    .game-container:fullscreen button {
+    #gameContainer:fullscreen button {
 
         padding: 7px 15px;
 
         font-size: 14px;
+
+        border-radius: 6px;
     }
 
 </style>
@@ -411,24 +302,25 @@
 
 
 <!-- =====================================================
-     MESSAGE TELEPHONE EN PORTRAIT
+     ECRAN MOBILE AVANT LE JEU
 ===================================================== -->
 
-<div id="rotate-screen">
+<div id="mobileStartScreen">
 
-    <div class="rotate-content">
+    <div class="mobile-start-content">
 
-        <div class="rotate-icon">
-            📱
-        </div>
-
-        <h2>
-            Tourne ton téléphone !
-        </h2>
+        <h1>
+            OSTIE DE FRANÇAIS
+        </h1>
 
         <p>
-            Cette épreuve se joue en mode paysage.
+            Pour cette épreuve, passe le jeu en plein écran
+            et joue avec ton téléphone en paysage.
         </p>
+
+        <button id="fullscreenButton">
+            Jouer en plein écran
+        </button>
 
     </div>
 
@@ -437,42 +329,46 @@
 
 
 <!-- =====================================================
-     JEU
+     PAGE NORMALE / PC
 ===================================================== -->
 
-<div
-    class="game-container"
-    id="gameContainer"
->
+<div id="page">
 
-    <h1>
-        OSTIE DE FRANÇAIS
-    </h1>
+    <div
+        class="game-container"
+        id="gameContainer"
+    >
 
-    <div class="subtitle">
-        Saute les obstacles et cours à travers Montréal !
-    </div>
+        <h1>
+            OSTIE DE FRANÇAIS
+        </h1>
 
-    <canvas
-        id="game"
-        width="800"
-        height="500"
-    ></canvas>
+        <div class="subtitle">
+            Saute les obstacles et cours à travers Montréal !
+        </div>
 
-    <div class="info">
+        <canvas
+            id="game"
+            width="800"
+            height="500"
+        ></canvas>
 
-        <span id="score">
-            Score : 0
-        </span>
+        <div class="info">
 
-        <button id="start">
-            Commencer
-        </button>
+            <span id="score">
+                Score : 0
+            </span>
 
-    </div>
+            <button id="start">
+                Commencer
+            </button>
 
-    <div class="hint">
-        Espace / ↑ / clic / toucher l'écran pour sauter
+        </div>
+
+        <div class="hint">
+            Espace / ↑ / clic / toucher l'écran pour sauter
+        </div>
+
     </div>
 
 </div>
@@ -492,9 +388,16 @@ const ctx =
     canvas.getContext("2d");
 
 const gameContainer =
-    document.getElementById(
-        "gameContainer"
-    );
+    document.getElementById("gameContainer");
+
+const page =
+    document.getElementById("page");
+
+const mobileStartScreen =
+    document.getElementById("mobileStartScreen");
+
+const fullscreenButton =
+    document.getElementById("fullscreenButton");
 
 
 const WIDTH =
@@ -561,15 +464,11 @@ baconImage.src =
 ========================================================= */
 
 const scoreDisplay =
-    document.getElementById(
-        "score"
-    );
+    document.getElementById("score");
 
 
 const startButton =
-    document.getElementById(
-        "start"
-    );
+    document.getElementById("start");
 
 
 
@@ -608,6 +507,16 @@ let obstacleTimer =
 let lastTime =
     0;
 
+
+
+/* =========================================================
+   DETECTION MOBILE
+========================================================= */
+
+const mobileLike =
+    window.matchMedia(
+        "(pointer: coarse)"
+    ).matches;
 
 
 /* =========================================================
@@ -744,45 +653,34 @@ function startGame() {
 
 
 /* =========================================================
-   PLEIN ECRAN MOBILE
+   ACTIVATION PLEIN ECRAN MOBILE
 ========================================================= */
 
-async function tryMobileFullscreen() {
+async function enterMobileFullscreen() {
 
     /*
-    On ne tente le plein écran que sur
-    un appareil qui ressemble à un mobile/tablette.
+    On affiche d'abord réellement le conteneur du jeu.
     */
 
-    const mobileLike =
-        window.matchMedia(
-            "(pointer: coarse)"
-        ).matches
-        ||
-        window.innerWidth <= 900;
+    mobileStartScreen.style.display =
+        "none";
 
-
-    if (!mobileLike) {
-        return;
-    }
+    page.style.display =
+        "flex";
 
 
     /*
-    Demande de plein écran.
-    Certains navigateurs, notamment certains Safari,
-    peuvent refuser : ce n'est pas grave.
+    Sur Android / Chrome :
+    demande de plein écran.
     */
 
     try {
 
         if (
-            !document.fullscreenElement
-            &&
             gameContainer.requestFullscreen
         ) {
 
-            await
-                gameContainer.requestFullscreen();
+            await gameContainer.requestFullscreen();
 
         }
 
@@ -790,20 +688,16 @@ async function tryMobileFullscreen() {
 
     catch (error) {
 
-        /*
-        Rien à faire :
-        le jeu reste jouable sans plein écran.
-        */
+        console.log(
+            "Le plein écran n'a pas pu être activé."
+        );
 
     }
 
 
     /*
-    On essaie ensuite de verrouiller
-    l'orientation paysage.
-
-    Ce n'est pas supporté partout,
-    donc l'échec est volontairement ignoré.
+    Une fois le plein écran obtenu,
+    on essaie de verrouiller en paysage.
     */
 
     try {
@@ -814,10 +708,9 @@ async function tryMobileFullscreen() {
             screen.orientation.lock
         ) {
 
-            await
-                screen.orientation.lock(
-                    "landscape"
-                );
+            await screen.orientation.lock(
+                "landscape"
+            );
 
         }
 
@@ -825,14 +718,76 @@ async function tryMobileFullscreen() {
 
     catch (error) {
 
-        /*
-        Sur iPhone notamment, cette fonction
-        peut ne pas être disponible.
-        */
+        console.log(
+            "Le verrouillage paysage n'est pas disponible."
+        );
 
     }
 
+
+    /*
+    On redessine après le changement
+    de taille/orientation.
+    */
+
+    draw();
+
 }
+
+
+
+/* =========================================================
+   SORTIE DU PLEIN ECRAN
+========================================================= */
+
+document.addEventListener(
+    "fullscreenchange",
+    function() {
+
+        /*
+        Si le joueur quitte le plein écran sur mobile,
+        on revient à l'écran d'accueil.
+        */
+
+        if (
+            mobileLike
+            &&
+            !document.fullscreenElement
+        ) {
+
+            page.style.display =
+                "none";
+
+            mobileStartScreen.style.display =
+                "flex";
+
+            /*
+            On stoppe aussi la partie pour éviter
+            qu'elle continue cachée derrière l'écran.
+            */
+
+            running =
+                false;
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   BOUTON PLEIN ECRAN
+========================================================= */
+
+fullscreenButton.addEventListener(
+    "click",
+    function() {
+
+        enterMobileFullscreen();
+
+    }
+);
 
 
 
@@ -1044,51 +999,25 @@ function checkCollision(
 
         a.x + playerPaddingX
         <
-        b.x
-        +
-        b.width
-        -
-        obstaclePaddingX
-
+        b.x + b.width - obstaclePaddingX
 
         &&
 
-
-        a.x
-        +
-        a.width
-        -
-        playerPaddingX
+        a.x + a.width - playerPaddingX
         >
-        b.x
-        +
-        obstaclePaddingX
-
+        b.x + obstaclePaddingX
 
         &&
 
-
-        a.y
-        +
-        playerPaddingY
+        a.y + playerPaddingY
         <
-        b.y
-        +
-        b.height
-
+        b.y + b.height
 
         &&
 
-
-        a.y
-        +
-        a.height
-        -
-        playerPaddingY
+        a.y + a.height - playerPaddingY
         >
-        b.y
-        +
-        obstaclePaddingTop
+        b.y + obstaclePaddingTop
 
     );
 
@@ -1105,7 +1034,6 @@ function update(delta) {
     if (!running) {
         return;
     }
-
 
 
     /* =====================================================
@@ -1128,15 +1056,11 @@ function update(delta) {
     if (
         player.y
         >=
-        GROUND
-        -
-        player.height
+        GROUND - player.height
     ) {
 
         player.y =
-            GROUND
-            -
-            player.height;
+            GROUND - player.height;
 
 
         player.velocityY =
@@ -1155,9 +1079,7 @@ function update(delta) {
     ===================================================== */
 
     speed +=
-        0.000036
-        *
-        delta;
+        0.000036 * delta;
 
 
 
@@ -1178,24 +1100,18 @@ function update(delta) {
 
         const progress =
             Math.min(
-
-                score
-                /
-                WIN_SCORE,
-
+                score / WIN_SCORE,
                 1
-
             );
 
 
         /*
-        Rythme volontairement irrégulier.
+        Rythme irrégulier :
 
-        22 % : très rapproché
-        60 % : moyen
-        18 % : grand trou
+        22 % rapproché
+        60 % moyen
+        18 % grand trou
         */
-
 
         const roll =
             Math.random();
@@ -1210,18 +1126,11 @@ function update(delta) {
         ) {
 
             baseDelay =
-
                 650
-
                 -
-
                 (120 * progress)
-
                 +
-
-                Math.random()
-                *
-                220;
+                Math.random() * 220;
 
         }
 
@@ -1231,18 +1140,11 @@ function update(delta) {
         ) {
 
             baseDelay =
-
                 1050
-
                 -
-
                 (250 * progress)
-
                 +
-
-                Math.random()
-                *
-                550;
+                Math.random() * 550;
 
         }
 
@@ -1250,18 +1152,11 @@ function update(delta) {
         else {
 
             baseDelay =
-
                 1650
-
                 -
-
                 (250 * progress)
-
                 +
-
-                Math.random()
-                *
-                700;
+                Math.random() * 700;
 
         }
 
@@ -1389,9 +1284,7 @@ function update(delta) {
     ===================================================== */
 
     score +=
-        delta
-        *
-        0.012;
+        delta * 0.012;
 
 
 
@@ -1427,21 +1320,14 @@ function update(delta) {
 
 
         scoreDisplay.textContent =
-
             "Score : "
-
             +
-
             FAKE_BUG_SCORE;
 
 
-
         localStorage.setItem(
-
             "ostieFakeBugSeen",
-
             "yes"
-
         );
 
 
@@ -1468,11 +1354,8 @@ function update(delta) {
 
 
         scoreDisplay.textContent =
-
             "Score : "
-
             +
-
             WIN_SCORE;
 
 
@@ -1486,21 +1369,16 @@ function update(delta) {
 
 
     scoreDisplay.textContent =
-
         "Score : "
-
         +
-
-        Math.floor(
-            score
-        );
+        Math.floor(score);
 
 }
 
 
 
 /* =========================================================
-   GAME OVER NORMAL
+   GAME OVER
 ========================================================= */
 
 function endGame() {
@@ -1606,15 +1484,11 @@ function drawBackground() {
     ) {
 
         ctx.drawImage(
-
             backgroundImage,
-
             0,
             0,
-
             WIDTH,
             HEIGHT
-
         );
 
     }
@@ -1627,13 +1501,10 @@ function drawBackground() {
 
 
         ctx.fillRect(
-
             0,
             0,
-
             WIDTH,
             HEIGHT
-
         );
 
     }
@@ -1645,13 +1516,10 @@ function drawBackground() {
 
 
     ctx.fillRect(
-
         0,
         0,
-
         WIDTH,
         HEIGHT
-
     );
 
 }
@@ -1686,15 +1554,11 @@ function drawPlayer() {
 
 
         ctx.drawImage(
-
             playerImage,
-
             player.x,
             player.y,
-
             player.width,
             player.height
-
         );
 
 
@@ -1710,13 +1574,10 @@ function drawPlayer() {
 
 
         ctx.fillRect(
-
             player.x,
             player.y,
-
             player.width,
             player.height
-
         );
 
     }
@@ -1818,15 +1679,11 @@ function drawObstacles() {
 
 
             ctx.drawImage(
-
                 imageToDraw,
-
                 obstacle.x,
                 obstacle.y,
-
                 obstacle.width,
                 obstacle.height
-
             );
 
 
@@ -1842,13 +1699,10 @@ function drawObstacles() {
 
 
             ctx.fillRect(
-
                 obstacle.x,
                 obstacle.y,
-
                 obstacle.width,
                 obstacle.height
-
             );
 
         }
@@ -1866,13 +1720,10 @@ function drawObstacles() {
 function draw() {
 
     ctx.clearRect(
-
         0,
         0,
-
         WIDTH,
         HEIGHT
-
     );
 
 
@@ -1880,22 +1731,15 @@ function draw() {
 
 
 
-    /* LIGNE DU SOL */
-
     ctx.fillStyle =
         "rgba(255,255,255,0.45)";
 
 
     ctx.fillRect(
-
         0,
-
         GROUND,
-
         WIDTH,
-
         2
-
     );
 
 
@@ -1933,15 +1777,10 @@ function draw() {
 
 
         ctx.fillRect(
-
             WIDTH / 2 - 165,
-
             22,
-
             330,
-
             48
-
         );
 
 
@@ -1958,13 +1797,9 @@ function draw() {
 
 
         ctx.fillText(
-
             "Clique sur « Commencer »",
-
             WIDTH / 2,
-
             54
-
         );
 
 
@@ -1986,15 +1821,10 @@ function draw() {
 
 
         ctx.fillRect(
-
             45,
-
             120,
-
             WIDTH - 90,
-
             250
-
         );
 
 
@@ -2007,15 +1837,10 @@ function draw() {
 
 
         ctx.strokeRect(
-
             45,
-
             120,
-
             WIDTH - 90,
-
             250
-
         );
 
 
@@ -2032,13 +1857,9 @@ function draw() {
 
 
         ctx.fillText(
-
             "Oulah, on dirait qu'il y a eu un bug...",
-
             WIDTH / 2,
-
             175
-
         );
 
 
@@ -2047,35 +1868,23 @@ function draw() {
 
 
         ctx.fillText(
-
             "Frustrant.",
-
             WIDTH / 2,
-
             220
-
         );
 
 
         ctx.fillText(
-
             "Mais réessaye, promis la prochaine fois",
-
             WIDTH / 2,
-
             262
-
         );
 
 
         ctx.fillText(
-
             "ça devrait fonctionner !",
-
             WIDTH / 2,
-
             296
-
         );
 
 
@@ -2084,13 +1893,9 @@ function draw() {
 
 
         ctx.fillText(
-
             "Clique sur « Réessayer » pour recommencer.",
-
             WIDTH / 2,
-
             342
-
         );
 
 
@@ -2112,15 +1917,10 @@ function draw() {
 
 
         ctx.fillRect(
-
             WIDTH / 2 - 220,
-
             HEIGHT / 2 - 90,
-
             440,
-
             165
-
         );
 
 
@@ -2133,15 +1933,10 @@ function draw() {
 
 
         ctx.strokeRect(
-
             WIDTH / 2 - 220,
-
             HEIGHT / 2 - 90,
-
             440,
-
             165
-
         );
 
 
@@ -2158,13 +1953,9 @@ function draw() {
 
 
         ctx.fillText(
-
             "Accroche toi petit hérisson",
-
             WIDTH / 2,
-
             HEIGHT / 2 - 28
-
         );
 
 
@@ -2173,15 +1964,11 @@ function draw() {
 
 
         ctx.fillText(
-
             "Score : "
             +
             Math.floor(score),
-
             WIDTH / 2,
-
             HEIGHT / 2 + 12
-
         );
 
 
@@ -2190,13 +1977,9 @@ function draw() {
 
 
         ctx.fillText(
-
             "Clique sur « Recommencer » pour retenter ta chance.",
-
             WIDTH / 2,
-
             HEIGHT / 2 + 48
-
         );
 
 
@@ -2218,15 +2001,10 @@ function draw() {
 
 
         ctx.fillRect(
-
             55,
-
             105,
-
             WIDTH - 110,
-
             275
-
         );
 
 
@@ -2239,15 +2017,10 @@ function draw() {
 
 
         ctx.strokeRect(
-
             55,
-
             105,
-
             WIDTH - 110,
-
             275
-
         );
 
 
@@ -2264,13 +2037,9 @@ function draw() {
 
 
         ctx.fillText(
-
             "BRAVO !",
-
             WIDTH / 2,
-
             155
-
         );
 
 
@@ -2279,24 +2048,16 @@ function draw() {
 
 
         ctx.fillText(
-
             "T'as bien gagné un indice,",
-
             WIDTH / 2,
-
             205
-
         );
 
 
         ctx.fillText(
-
             "ostie de française...",
-
             WIDTH / 2,
-
             238
-
         );
 
 
@@ -2305,13 +2066,9 @@ function draw() {
 
 
         ctx.fillText(
-
             "Le mot indice est :",
-
             WIDTH / 2,
-
             285
-
         );
 
 
@@ -2320,13 +2077,9 @@ function draw() {
 
 
         ctx.fillText(
-
             "SERPENT",
-
             WIDTH / 2,
-
             330
-
         );
 
 
@@ -2335,13 +2088,9 @@ function draw() {
 
 
         ctx.fillText(
-
             "Bonne chance pour la suite !",
-
             WIDTH / 2,
-
             365
-
         );
 
 
@@ -2370,12 +2119,7 @@ function gameLoop(timestamp) {
 
 
     let delta =
-
-        timestamp
-
-        -
-
-        lastTime;
+        timestamp - lastTime;
 
 
     lastTime =
@@ -2415,73 +2159,46 @@ function gameLoop(timestamp) {
 ========================================================= */
 
 startButton.addEventListener(
-
     "click",
-
     function() {
-
-        /*
-        On démarre immédiatement le jeu.
-        */
 
         startGame();
 
-
-        /*
-        Et sur mobile on tente le plein écran
-        + orientation paysage.
-        */
-
-        tryMobileFullscreen();
-
     }
-
 );
 
 
 
 document.addEventListener(
-
     "keydown",
-
     function(event) {
 
         if (
-
             event.code === "Space"
-
             ||
-
             event.code === "ArrowUp"
-
         ) {
 
             event.preventDefault();
-
 
             jump();
 
         }
 
     }
-
 );
 
 
 
 canvas.addEventListener(
-
     "pointerdown",
-
     function(event) {
 
         event.preventDefault();
 
-
         jump();
 
     }
-
 );
 
 
@@ -2492,41 +2209,31 @@ canvas.addEventListener(
 
 playerImage.onload =
 function() {
-
     draw();
-
 };
 
 
 backgroundImage.onload =
 function() {
-
     draw();
-
 };
 
 
 cauliflowerImage.onload =
 function() {
-
     draw();
-
 };
 
 
 soupImage.onload =
 function() {
-
     draw();
-
 };
 
 
 baconImage.onload =
 function() {
-
     draw();
-
 };
 
 
