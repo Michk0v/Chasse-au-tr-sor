@@ -2,25 +2,38 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <title>Ostie de français</title>
 
 <style>
+
     * {
         box-sizing: border-box;
     }
 
+    html,
     body {
         margin: 0;
+        min-height: 100%;
+    }
+
+    body {
         padding: 20px;
         background: #f5f0e7;
         font-family: Arial, sans-serif;
+
         display: flex;
         justify-content: center;
         align-items: center;
+
         min-height: 100vh;
     }
+
+
+    /* =====================================================
+       CONTENEUR GENERAL
+    ===================================================== */
 
     .game-container {
         width: 100%;
@@ -28,11 +41,13 @@
         text-align: center;
     }
 
+
     h1 {
         margin: 0 0 8px 0;
         font-size: 34px;
         color: #151515;
     }
+
 
     .subtitle {
         margin-bottom: 16px;
@@ -41,23 +56,32 @@
         font-weight: bold;
     }
 
+
     canvas {
         display: block;
+
         width: 100%;
         height: auto;
+
         background: white;
+
         border: 3px solid #222;
         border-radius: 10px;
+
         touch-action: manipulation;
     }
 
+
     .info {
         margin-top: 14px;
+
         display: flex;
         justify-content: space-between;
         align-items: center;
+
         gap: 10px;
     }
+
 
     #score {
         font-size: 20px;
@@ -65,44 +89,386 @@
         color: #222;
     }
 
+
     button {
         border: none;
+
         background: #222;
         color: white;
+
         padding: 12px 24px;
+
         border-radius: 8px;
+
         font-size: 17px;
         font-weight: bold;
+
         cursor: pointer;
     }
+
 
     button:hover {
         background: #444;
     }
+
 
     .hint {
         margin-top: 12px;
         font-size: 14px;
         color: #666;
     }
+
+
+
+    /* =====================================================
+       ECRAN "TOURNE TON TELEPHONE"
+    ===================================================== */
+
+    #rotate-screen {
+
+        display: none;
+
+        position: fixed;
+
+        inset: 0;
+
+        z-index: 99999;
+
+        background: #f5f0e7;
+
+        align-items: center;
+        justify-content: center;
+
+        text-align: center;
+
+        padding: 30px;
+    }
+
+
+    .rotate-content {
+
+        max-width: 360px;
+
+        color: #222;
+    }
+
+
+    .rotate-icon {
+
+        font-size: 70px;
+
+        margin-bottom: 20px;
+
+        animation: rotatePhone 1.8s ease-in-out infinite alternate;
+    }
+
+
+    .rotate-content h2 {
+
+        font-size: 27px;
+
+        margin: 0 0 14px 0;
+    }
+
+
+    .rotate-content p {
+
+        font-size: 18px;
+
+        line-height: 1.4;
+
+        margin: 0;
+    }
+
+
+    @keyframes rotatePhone {
+
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(90deg);
+        }
+
+    }
+
+
+
+    /* =====================================================
+       SMARTPHONE EN PORTRAIT
+    ===================================================== */
+
+    @media
+    (max-width: 900px)
+    and (orientation: portrait) {
+
+        #rotate-screen {
+            display: flex;
+        }
+
+    }
+
+
+
+    /* =====================================================
+       SMARTPHONE EN PAYSAGE
+    ===================================================== */
+
+    @media
+    (max-height: 600px)
+    and (orientation: landscape) {
+
+        html,
+        body {
+
+            width: 100%;
+            height: 100%;
+
+            overflow: hidden;
+        }
+
+
+        body {
+
+            padding:
+                max(3px, env(safe-area-inset-top))
+                max(3px, env(safe-area-inset-right))
+                max(3px, env(safe-area-inset-bottom))
+                max(3px, env(safe-area-inset-left));
+
+            align-items: center;
+        }
+
+
+        .game-container {
+
+            width: 100%;
+            height: 100%;
+
+            max-width: none;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        /*
+        Sur téléphone en paysage, on cache le titre,
+        sous-titre et aide pour consacrer presque
+        tout l'écran au jeu.
+        */
+
+        h1,
+        .subtitle,
+        .hint {
+
+            display: none;
+        }
+
+
+        canvas {
+
+            width:
+                min(
+                    100vw,
+                    calc((100vh - 56px) * 1.6)
+                );
+
+            height: auto;
+
+            max-height:
+                calc(100vh - 56px);
+
+            border-width: 2px;
+
+            border-radius: 5px;
+        }
+
+
+        .info {
+
+            width:
+                min(
+                    100vw,
+                    calc((100vh - 56px) * 1.6)
+                );
+
+            margin-top: 4px;
+
+            padding: 0 6px;
+
+            flex-shrink: 0;
+        }
+
+
+        #score {
+
+            font-size: 15px;
+        }
+
+
+        button {
+
+            padding: 7px 15px;
+
+            font-size: 14px;
+
+            border-radius: 6px;
+        }
+
+    }
+
+
+
+    /* =====================================================
+       MODE PLEIN ECRAN
+    ===================================================== */
+
+    .game-container:fullscreen {
+
+        width: 100vw;
+        height: 100vh;
+
+        max-width: none;
+
+        background: #f5f0e7;
+
+        padding:
+            max(3px, env(safe-area-inset-top))
+            max(3px, env(safe-area-inset-right))
+            max(3px, env(safe-area-inset-bottom))
+            max(3px, env(safe-area-inset-left));
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    .game-container:fullscreen h1,
+    .game-container:fullscreen .subtitle,
+    .game-container:fullscreen .hint {
+
+        display: none;
+    }
+
+
+    .game-container:fullscreen canvas {
+
+        width:
+            min(
+                100vw,
+                calc((100vh - 56px) * 1.6)
+            );
+
+        height: auto;
+
+        max-height:
+            calc(100vh - 56px);
+
+        border-width: 2px;
+
+        border-radius: 5px;
+    }
+
+
+    .game-container:fullscreen .info {
+
+        width:
+            min(
+                100vw,
+                calc((100vh - 56px) * 1.6)
+            );
+
+        margin-top: 4px;
+
+        padding: 0 6px;
+    }
+
+
+    .game-container:fullscreen #score {
+
+        font-size: 15px;
+    }
+
+
+    .game-container:fullscreen button {
+
+        padding: 7px 15px;
+
+        font-size: 14px;
+    }
+
 </style>
 </head>
 
+
 <body>
 
-<div class="game-container">
 
-    <h1>OSTIE DE FRANÇAIS</h1>
+<!-- =====================================================
+     MESSAGE TELEPHONE EN PORTRAIT
+===================================================== -->
+
+<div id="rotate-screen">
+
+    <div class="rotate-content">
+
+        <div class="rotate-icon">
+            📱
+        </div>
+
+        <h2>
+            Tourne ton téléphone !
+        </h2>
+
+        <p>
+            Cette épreuve se joue en mode paysage.
+        </p>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     JEU
+===================================================== -->
+
+<div
+    class="game-container"
+    id="gameContainer"
+>
+
+    <h1>
+        OSTIE DE FRANÇAIS
+    </h1>
 
     <div class="subtitle">
         Saute les obstacles et cours à travers Montréal !
     </div>
 
-    <canvas id="game" width="800" height="500"></canvas>
+    <canvas
+        id="game"
+        width="800"
+        height="500"
+    ></canvas>
 
     <div class="info">
-        <span id="score">Score : 0</span>
-        <button id="start">Commencer</button>
+
+        <span id="score">
+            Score : 0
+        </span>
+
+        <button id="start">
+            Commencer
+        </button>
+
     </div>
 
     <div class="hint">
@@ -111,50 +477,100 @@
 
 </div>
 
+
+
 <script>
 
 /* =========================================================
    CONFIGURATION
 ========================================================= */
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas =
+    document.getElementById("game");
 
-const WIDTH = canvas.width;
-const HEIGHT = canvas.height;
+const ctx =
+    canvas.getContext("2d");
 
-const GROUND = 440;
+const gameContainer =
+    document.getElementById(
+        "gameContainer"
+    );
 
-const WIN_SCORE = 1997;
-const FAKE_BUG_SCORE = 1994;
+
+const WIDTH =
+    canvas.width;
+
+const HEIGHT =
+    canvas.height;
+
+
+const GROUND =
+    440;
+
+
+const WIN_SCORE =
+    1997;
+
+const FAKE_BUG_SCORE =
+    1994;
+
 
 
 /* =========================================================
    IMAGES
 ========================================================= */
 
-const playerImage = new Image();
-playerImage.src = "player.png";
+const playerImage =
+    new Image();
 
-const backgroundImage = new Image();
-backgroundImage.src = "background.jpg";
+playerImage.src =
+    "player.png";
 
-const cauliflowerImage = new Image();
-cauliflowerImage.src = "cauliflower.png";
 
-const soupImage = new Image();
-soupImage.src = "soup.png";
+const backgroundImage =
+    new Image();
 
-const baconImage = new Image();
-baconImage.src = "bacon.png";
+backgroundImage.src =
+    "background.jpg";
+
+
+const cauliflowerImage =
+    new Image();
+
+cauliflowerImage.src =
+    "cauliflower.png";
+
+
+const soupImage =
+    new Image();
+
+soupImage.src =
+    "soup.png";
+
+
+const baconImage =
+    new Image();
+
+baconImage.src =
+    "bacon.png";
+
 
 
 /* =========================================================
    HTML
 ========================================================= */
 
-const scoreDisplay = document.getElementById("score");
-const startButton = document.getElementById("start");
+const scoreDisplay =
+    document.getElementById(
+        "score"
+    );
+
+
+const startButton =
+    document.getElementById(
+        "start"
+    );
+
 
 
 /* =========================================================
@@ -162,17 +578,36 @@ const startButton = document.getElementById("start");
 ========================================================= */
 
 let player;
-let obstacles = [];
 
-let running = false;
-let gameOver = false;
-let won = false;
-let fakeBug = false;
+let obstacles =
+    [];
 
-let score = 0;
-let speed = 5;
-let obstacleTimer = 0;
-let lastTime = 0;
+
+let running =
+    false;
+
+let gameOver =
+    false;
+
+let won =
+    false;
+
+let fakeBug =
+    false;
+
+
+let score =
+    0;
+
+let speed =
+    5;
+
+let obstacleTimer =
+    0;
+
+let lastTime =
+    0;
+
 
 
 /* =========================================================
@@ -182,17 +617,24 @@ let lastTime = 0;
 function resetPlayer() {
 
     player = {
+
         x: 85,
-        y: GROUND - 125,
+
+        y:
+            GROUND - 125,
 
         width: 48,
+
         height: 125,
 
         velocityY: 0,
+
         jumping: false
+
     };
 
 }
+
 
 
 /* =========================================================
@@ -203,23 +645,46 @@ function resetGame() {
 
     resetPlayer();
 
-    obstacles = [];
 
-    score = 0;
-    speed = 5;
-    obstacleTimer = 0;
+    obstacles =
+        [];
 
-    gameOver = false;
-    won = false;
-    fakeBug = false;
-    running = false;
 
-    scoreDisplay.textContent = "Score : 0";
-    startButton.textContent = "Commencer";
+    score =
+        0;
+
+    speed =
+        5;
+
+    obstacleTimer =
+        0;
+
+
+    gameOver =
+        false;
+
+    won =
+        false;
+
+    fakeBug =
+        false;
+
+    running =
+        false;
+
+
+    scoreDisplay.textContent =
+        "Score : 0";
+
+
+    startButton.textContent =
+        "Commencer";
+
 
     draw();
 
 }
+
 
 
 /* =========================================================
@@ -230,26 +695,145 @@ function startGame() {
 
     resetPlayer();
 
-    obstacles = [];
 
-    score = 0;
-    speed = 5;
-    obstacleTimer = 0;
+    obstacles =
+        [];
 
-    gameOver = false;
-    won = false;
-    fakeBug = false;
-    running = true;
 
-    scoreDisplay.textContent = "Score : 0";
+    score =
+        0;
 
-    lastTime = performance.now();
+    speed =
+        5;
 
-    startButton.textContent = "Recommencer";
+    obstacleTimer =
+        0;
 
-    requestAnimationFrame(gameLoop);
+
+    gameOver =
+        false;
+
+    won =
+        false;
+
+    fakeBug =
+        false;
+
+    running =
+        true;
+
+
+    scoreDisplay.textContent =
+        "Score : 0";
+
+
+    lastTime =
+        performance.now();
+
+
+    startButton.textContent =
+        "Recommencer";
+
+
+    requestAnimationFrame(
+        gameLoop
+    );
 
 }
+
+
+
+/* =========================================================
+   PLEIN ECRAN MOBILE
+========================================================= */
+
+async function tryMobileFullscreen() {
+
+    /*
+    On ne tente le plein écran que sur
+    un appareil qui ressemble à un mobile/tablette.
+    */
+
+    const mobileLike =
+        window.matchMedia(
+            "(pointer: coarse)"
+        ).matches
+        ||
+        window.innerWidth <= 900;
+
+
+    if (!mobileLike) {
+        return;
+    }
+
+
+    /*
+    Demande de plein écran.
+    Certains navigateurs, notamment certains Safari,
+    peuvent refuser : ce n'est pas grave.
+    */
+
+    try {
+
+        if (
+            !document.fullscreenElement
+            &&
+            gameContainer.requestFullscreen
+        ) {
+
+            await
+                gameContainer.requestFullscreen();
+
+        }
+
+    }
+
+    catch (error) {
+
+        /*
+        Rien à faire :
+        le jeu reste jouable sans plein écran.
+        */
+
+    }
+
+
+    /*
+    On essaie ensuite de verrouiller
+    l'orientation paysage.
+
+    Ce n'est pas supporté partout,
+    donc l'échec est volontairement ignoré.
+    */
+
+    try {
+
+        if (
+            screen.orientation
+            &&
+            screen.orientation.lock
+        ) {
+
+            await
+                screen.orientation.lock(
+                    "landscape"
+                );
+
+        }
+
+    }
+
+    catch (error) {
+
+        /*
+        Sur iPhone notamment, cette fonction
+        peut ne pas être disponible.
+        */
+
+    }
+
+}
+
 
 
 /* =========================================================
@@ -262,14 +846,19 @@ function jump() {
         return;
     }
 
+
     if (!player.jumping) {
 
-        player.velocityY = -15;
-        player.jumping = true;
+        player.velocityY =
+            -15;
+
+        player.jumping =
+            true;
 
     }
 
 }
+
 
 
 /* =========================================================
@@ -278,86 +867,109 @@ function jump() {
 
 function createObstacle() {
 
-    const randomType = Math.random();
+    const randomType =
+        Math.random();
+
 
     /*
-    Répartition :
-
     15 % bacon
     30 % soupe
     55 % chou-fleur
     */
 
-    if (randomType < 0.15) {
 
-        /*
-        BACON :
-        il faut l'attraper.
-        */
+    if (
+        randomType < 0.15
+    ) {
 
-        const size = 48;
+        const size =
+            48;
+
 
         obstacles.push({
 
-            type: "bacon",
+            type:
+                "bacon",
 
-            x: WIDTH + 10,
+            x:
+                WIDTH + 10,
 
-            y: GROUND - 100,
+            y:
+                GROUND - 100,
 
-            width: size,
-            height: size
+            width:
+                size,
+
+            height:
+                size
 
         });
 
     }
 
-    else if (randomType < 0.45) {
 
-        /*
-        SOUPE :
-        obstacle haut.
-        */
+    else if (
+        randomType < 0.45
+    ) {
 
         const height =
-            88 + Math.random() * 8;
+            88
+            +
+            Math.random() * 8;
+
 
         const width =
-            50 + Math.random() * 6;
+            50
+            +
+            Math.random() * 6;
+
 
         obstacles.push({
 
-            type: "soup",
+            type:
+                "soup",
 
-            x: WIDTH + 10,
-            y: GROUND - height,
+            x:
+                WIDTH + 10,
 
-            width: width,
-            height: height
+            y:
+                GROUND - height,
+
+            width:
+                width,
+
+            height:
+                height
 
         });
 
     }
+
 
     else {
 
-        /*
-        CHOU-FLEUR :
-        obstacle bas.
-        */
-
         const size =
-            52 + Math.random() * 15;
+            52
+            +
+            Math.random() * 15;
+
 
         obstacles.push({
 
-            type: "cauliflower",
+            type:
+                "cauliflower",
 
-            x: WIDTH + 10,
-            y: GROUND - size,
+            x:
+                WIDTH + 10,
 
-            width: size,
-            height: size
+            y:
+                GROUND - size,
+
+            width:
+                size,
+
+            height:
+                size
 
         });
 
@@ -366,43 +978,61 @@ function createObstacle() {
 }
 
 
+
 /* =========================================================
    COLLISIONS
 ========================================================= */
 
-function checkCollision(a, b) {
+function checkCollision(
+    a,
+    b
+) {
 
-    const playerPaddingX = 8;
-    const playerPaddingY = 5;
+    const playerPaddingX =
+        8;
+
+    const playerPaddingY =
+        5;
+
 
     let obstaclePaddingX;
+
     let obstaclePaddingTop;
 
 
-    if (b.type === "soup") {
+    if (
+        b.type === "soup"
+    ) {
 
         obstaclePaddingX =
             b.width * 0.16;
+
 
         obstaclePaddingTop =
             b.height * 0.10;
 
     }
 
-    else if (b.type === "bacon") {
+
+    else if (
+        b.type === "bacon"
+    ) {
 
         obstaclePaddingX =
             b.width * 0.08;
+
 
         obstaclePaddingTop =
             b.height * 0.08;
 
     }
 
+
     else {
 
         obstaclePaddingX =
             b.width * 0.12;
+
 
         obstaclePaddingTop =
             b.height * 0.10;
@@ -412,21 +1042,58 @@ function checkCollision(a, b) {
 
     return (
 
-        a.x + playerPaddingX <
-        b.x + b.width - obstaclePaddingX &&
+        a.x + playerPaddingX
+        <
+        b.x
+        +
+        b.width
+        -
+        obstaclePaddingX
 
-        a.x + a.width - playerPaddingX >
-        b.x + obstaclePaddingX &&
 
-        a.y + playerPaddingY <
-        b.y + b.height &&
+        &&
 
-        a.y + a.height - playerPaddingY >
-        b.y + obstaclePaddingTop
+
+        a.x
+        +
+        a.width
+        -
+        playerPaddingX
+        >
+        b.x
+        +
+        obstaclePaddingX
+
+
+        &&
+
+
+        a.y
+        +
+        playerPaddingY
+        <
+        b.y
+        +
+        b.height
+
+
+        &&
+
+
+        a.y
+        +
+        a.height
+        -
+        playerPaddingY
+        >
+        b.y
+        +
+        obstaclePaddingTop
 
     );
 
 }
+
 
 
 /* =========================================================
@@ -440,12 +1107,18 @@ function update(delta) {
     }
 
 
+
     /* =====================================================
        GRAVITE
     ===================================================== */
 
-    player.velocityY += 0.75;
-    player.y += player.velocityY;
+    player.velocityY +=
+        0.75;
+
+
+    player.y +=
+        player.velocityY;
+
 
 
     /* =====================================================
@@ -453,17 +1126,28 @@ function update(delta) {
     ===================================================== */
 
     if (
-        player.y >=
-        GROUND - player.height
+        player.y
+        >=
+        GROUND
+        -
+        player.height
     ) {
 
         player.y =
-            GROUND - player.height;
+            GROUND
+            -
+            player.height;
 
-        player.velocityY = 0;
-        player.jumping = false;
+
+        player.velocityY =
+            0;
+
+
+        player.jumping =
+            false;
 
     }
+
 
 
     /* =====================================================
@@ -471,79 +1155,113 @@ function update(delta) {
     ===================================================== */
 
     speed +=
-        0.000036 * delta;
+        0.000036
+        *
+        delta;
+
 
 
     /* =====================================================
-       APPARITION DES OBSTACLES
+       APPARITION
     ===================================================== */
 
-    obstacleTimer -= delta;
+    obstacleTimer -=
+        delta;
 
-    if (obstacleTimer <= 0) {
+
+    if (
+        obstacleTimer <= 0
+    ) {
 
         createObstacle();
 
 
         const progress =
             Math.min(
-                score / WIN_SCORE,
+
+                score
+                /
+                WIN_SCORE,
+
                 1
+
             );
 
 
         /*
-        Espacement volontairement irrégulier.
+        Rythme volontairement irrégulier.
 
-        22 % : obstacle rapproché
-        60 % : espacement moyen
+        22 % : très rapproché
+        60 % : moyen
         18 % : grand trou
-
-        Cela casse le rythme régulier.
         */
+
 
         const roll =
             Math.random();
 
+
         let baseDelay;
 
 
-        if (roll < 0.22) {
 
-            /*
-            OBSTACLE RAPPROCHE
-            */
+        if (
+            roll < 0.22
+        ) {
 
             baseDelay =
+
                 650
-                - (120 * progress)
-                + Math.random() * 220;
+
+                -
+
+                (120 * progress)
+
+                +
+
+                Math.random()
+                *
+                220;
 
         }
 
-        else if (roll < 0.82) {
 
-            /*
-            ESPACEMENT NORMAL
-            */
+        else if (
+            roll < 0.82
+        ) {
 
             baseDelay =
+
                 1050
-                - (250 * progress)
-                + Math.random() * 550;
+
+                -
+
+                (250 * progress)
+
+                +
+
+                Math.random()
+                *
+                550;
 
         }
+
 
         else {
 
-            /*
-            GRAND TROU
-            */
-
             baseDelay =
+
                 1650
-                - (250 * progress)
-                + Math.random() * 700;
+
+                -
+
+                (250 * progress)
+
+                +
+
+                Math.random()
+                *
+                700;
 
         }
 
@@ -554,13 +1272,17 @@ function update(delta) {
     }
 
 
+
     /* =====================================================
-       DEPLACEMENT ET COLLISIONS
+       DEPLACEMENT / COLLISIONS
     ===================================================== */
 
     for (
-        let i = obstacles.length - 1;
+        let i =
+            obstacles.length - 1;
+
         i >= 0;
+
         i--
     ) {
 
@@ -569,8 +1291,13 @@ function update(delta) {
 
 
         obstacle.x -=
-            speed *
+
+            speed
+
+            *
+
             (delta / 16.67);
+
 
 
         /* =================================================
@@ -585,12 +1312,13 @@ function update(delta) {
         ) {
 
             /*
-            BACON :
-            toucher = réussite.
+            Bacon attrapé.
             */
 
             if (
-                obstacle.type === "bacon"
+                obstacle.type
+                ===
+                "bacon"
             ) {
 
                 obstacles.splice(
@@ -598,51 +1326,52 @@ function update(delta) {
                     1
                 );
 
+
                 continue;
 
             }
 
 
             /*
-            SOUPE / CHOU-FLEUR :
-            toucher = GAME OVER.
+            Obstacle touché.
             */
 
             endGame();
+
             return;
 
         }
 
 
+
         /* =================================================
-           OBJET SORTI DE L'ECRAN
+           SORTIE DE L'ECRAN
         ================================================= */
 
         if (
-            obstacle.x +
-            obstacle.width <
+            obstacle.x
+            +
+            obstacle.width
+            <
             0
         ) {
 
             /*
-            BACON raté :
-            GAME OVER.
+            Bacon raté.
             */
 
             if (
-                obstacle.type === "bacon"
+                obstacle.type
+                ===
+                "bacon"
             ) {
 
                 endGame();
+
                 return;
 
             }
 
-
-            /*
-            Obstacle classique :
-            suppression.
-            */
 
             obstacles.splice(
                 i,
@@ -654,27 +1383,43 @@ function update(delta) {
     }
 
 
+
     /* =====================================================
        SCORE
     ===================================================== */
 
     score +=
-        delta * 0.012;
+        delta
+        *
+        0.012;
+
 
 
     /* =====================================================
-       FAUX BUG À 1994
+       FAUX BUG A 1994
     ===================================================== */
 
     const fakeBugAlreadySeen =
+
         localStorage.getItem(
             "ostieFakeBugSeen"
-        ) === "yes";
+        )
+
+        ===
+
+        "yes";
+
 
 
     if (
-        !fakeBugAlreadySeen &&
-        score >= FAKE_BUG_SCORE
+
+        !fakeBugAlreadySeen
+
+        &&
+
+        score >=
+        FAKE_BUG_SCORE
+
     ) {
 
         score =
@@ -682,34 +1427,40 @@ function update(delta) {
 
 
         scoreDisplay.textContent =
-            "Score : " +
+
+            "Score : "
+
+            +
+
             FAKE_BUG_SCORE;
 
 
-        /*
-        Le faux bug ne se produira plus
-        sur ce navigateur.
-        */
 
         localStorage.setItem(
+
             "ostieFakeBugSeen",
+
             "yes"
+
         );
 
 
         triggerFakeBug();
 
+
         return;
 
     }
 
 
+
     /* =====================================================
-       VICTOIRE À 1997
+       VICTOIRE
     ===================================================== */
 
     if (
-        score >= WIN_SCORE
+        score >=
+        WIN_SCORE
     ) {
 
         score =
@@ -717,22 +1468,35 @@ function update(delta) {
 
 
         scoreDisplay.textContent =
-            "Score : " +
+
+            "Score : "
+
+            +
+
             WIN_SCORE;
 
 
         winGame();
+
 
         return;
 
     }
 
 
+
     scoreDisplay.textContent =
-        "Score : " +
-        Math.floor(score);
+
+        "Score : "
+
+        +
+
+        Math.floor(
+            score
+        );
 
 }
+
 
 
 /* =========================================================
@@ -741,38 +1505,58 @@ function update(delta) {
 
 function endGame() {
 
-    running = false;
+    running =
+        false;
 
-    gameOver = true;
-    won = false;
-    fakeBug = false;
+
+    gameOver =
+        true;
+
+    won =
+        false;
+
+    fakeBug =
+        false;
+
 
     startButton.textContent =
         "Recommencer";
 
+
     draw();
 
 }
 
 
+
 /* =========================================================
-   FAUX BUG À 1994
+   FAUX BUG
 ========================================================= */
 
 function triggerFakeBug() {
 
-    running = false;
+    running =
+        false;
 
-    gameOver = false;
-    won = false;
-    fakeBug = true;
+
+    gameOver =
+        false;
+
+    won =
+        false;
+
+    fakeBug =
+        true;
+
 
     startButton.textContent =
         "Réessayer";
 
+
     draw();
 
 }
+
 
 
 /* =========================================================
@@ -781,18 +1565,28 @@ function triggerFakeBug() {
 
 function winGame() {
 
-    running = false;
+    running =
+        false;
 
-    gameOver = false;
-    fakeBug = false;
-    won = true;
+
+    gameOver =
+        false;
+
+    fakeBug =
+        false;
+
+    won =
+        true;
+
 
     startButton.textContent =
         "Rejouer";
 
+
     draw();
 
 }
+
 
 
 /* =========================================================
@@ -802,46 +1596,66 @@ function winGame() {
 function drawBackground() {
 
     if (
-        backgroundImage.complete &&
+
+        backgroundImage.complete
+
+        &&
+
         backgroundImage.naturalWidth > 0
+
     ) {
 
         ctx.drawImage(
+
             backgroundImage,
+
             0,
             0,
+
             WIDTH,
             HEIGHT
+
         );
 
     }
+
 
     else {
 
         ctx.fillStyle =
             "#eee7dc";
 
+
         ctx.fillRect(
+
             0,
             0,
+
             WIDTH,
             HEIGHT
+
         );
 
     }
 
 
+
     ctx.fillStyle =
         "rgba(255,255,255,0.18)";
 
+
     ctx.fillRect(
+
         0,
         0,
+
         WIDTH,
         HEIGHT
+
     );
 
 }
+
 
 
 /* =========================================================
@@ -851,8 +1665,13 @@ function drawBackground() {
 function drawPlayer() {
 
     if (
-        playerImage.complete &&
+
+        playerImage.complete
+
+        &&
+
         playerImage.naturalWidth > 0
+
     ) {
 
         ctx.save();
@@ -861,16 +1680,21 @@ function drawPlayer() {
         ctx.shadowColor =
             "rgba(255,255,255,1)";
 
+
         ctx.shadowBlur =
             6;
 
 
         ctx.drawImage(
+
             playerImage,
+
             player.x,
             player.y,
+
             player.width,
             player.height
+
         );
 
 
@@ -878,16 +1702,21 @@ function drawPlayer() {
 
     }
 
+
     else {
 
         ctx.fillStyle =
             "#222";
 
+
         ctx.fillRect(
+
             player.x,
             player.y,
+
             player.width,
             player.height
+
         );
 
     }
@@ -895,21 +1724,27 @@ function drawPlayer() {
 }
 
 
+
 /* =========================================================
-   DESSIN DES OBSTACLES / BACON
+   OBSTACLES
 ========================================================= */
 
 function drawObstacles() {
 
     for (
-        const obstacle of obstacles
+        const obstacle
+        of
+        obstacles
     ) {
 
         let imageToDraw;
 
 
+
         if (
-            obstacle.type === "soup"
+            obstacle.type
+            ===
+            "soup"
         ) {
 
             imageToDraw =
@@ -917,14 +1752,18 @@ function drawObstacles() {
 
         }
 
+
         else if (
-            obstacle.type === "bacon"
+            obstacle.type
+            ===
+            "bacon"
         ) {
 
             imageToDraw =
                 baconImage;
 
         }
+
 
         else {
 
@@ -934,30 +1773,42 @@ function drawObstacles() {
         }
 
 
+
         if (
-            imageToDraw.complete &&
+
+            imageToDraw.complete
+
+            &&
+
             imageToDraw.naturalWidth > 0
+
         ) {
 
             ctx.save();
 
 
+
             if (
-                obstacle.type === "bacon"
+                obstacle.type
+                ===
+                "bacon"
             ) {
 
                 ctx.shadowColor =
                     "rgba(255,255,255,1)";
+
 
                 ctx.shadowBlur =
                     11;
 
             }
 
+
             else {
 
                 ctx.shadowColor =
                     "rgba(255,255,255,0.95)";
+
 
                 ctx.shadowBlur =
                     5;
@@ -965,7 +1816,9 @@ function drawObstacles() {
             }
 
 
+
             ctx.drawImage(
+
                 imageToDraw,
 
                 obstacle.x,
@@ -973,6 +1826,7 @@ function drawObstacles() {
 
                 obstacle.width,
                 obstacle.height
+
             );
 
 
@@ -980,16 +1834,21 @@ function drawObstacles() {
 
         }
 
+
         else {
 
             ctx.fillStyle =
                 "#555";
 
+
             ctx.fillRect(
+
                 obstacle.x,
                 obstacle.y,
+
                 obstacle.width,
                 obstacle.height
+
             );
 
         }
@@ -999,6 +1858,7 @@ function drawObstacles() {
 }
 
 
+
 /* =========================================================
    DESSIN GENERAL
 ========================================================= */
@@ -1006,71 +1866,105 @@ function drawObstacles() {
 function draw() {
 
     ctx.clearRect(
+
         0,
         0,
+
         WIDTH,
         HEIGHT
+
     );
 
 
     drawBackground();
 
 
-    /* =====================================================
-       LIGNE DU SOL
-    ===================================================== */
+
+    /* LIGNE DU SOL */
 
     ctx.fillStyle =
         "rgba(255,255,255,0.45)";
 
+
     ctx.fillRect(
+
         0,
+
         GROUND,
+
         WIDTH,
+
         2
+
     );
 
 
+
     drawPlayer();
+
     drawObstacles();
 
 
+
     /* =====================================================
-       ECRAN DE DEPART
+       DEPART
     ===================================================== */
 
     if (
-        !running &&
-        !gameOver &&
-        !won &&
+
+        !running
+
+        &&
+
+        !gameOver
+
+        &&
+
+        !won
+
+        &&
+
         !fakeBug
+
     ) {
 
         ctx.fillStyle =
             "rgba(255,255,255,0.82)";
 
+
         ctx.fillRect(
+
             WIDTH / 2 - 165,
+
             22,
+
             330,
+
             48
+
         );
 
 
         ctx.fillStyle =
             "#111";
 
+
         ctx.font =
             "bold 23px Arial";
+
 
         ctx.textAlign =
             "center";
 
 
         ctx.fillText(
+
             "Clique sur « Commencer »",
+
             WIDTH / 2,
+
             54
+
         );
 
 
@@ -1080,8 +1974,9 @@ function draw() {
     }
 
 
+
     /* =====================================================
-       FAUX BUG À 1994
+       FAUX BUG 1994
     ===================================================== */
 
     if (fakeBug) {
@@ -1089,31 +1984,44 @@ function draw() {
         ctx.fillStyle =
             "rgba(255,255,255,0.94)";
 
+
         ctx.fillRect(
+
             45,
+
             120,
+
             WIDTH - 90,
+
             250
+
         );
 
 
         ctx.strokeStyle =
             "#222";
 
+
         ctx.lineWidth =
             4;
 
 
         ctx.strokeRect(
+
             45,
+
             120,
+
             WIDTH - 90,
+
             250
+
         );
 
 
         ctx.fillStyle =
             "#222";
+
 
         ctx.textAlign =
             "center";
@@ -1124,9 +2032,13 @@ function draw() {
 
 
         ctx.fillText(
+
             "Oulah, on dirait qu'il y a eu un bug...",
+
             WIDTH / 2,
+
             175
+
         );
 
 
@@ -1135,23 +2047,35 @@ function draw() {
 
 
         ctx.fillText(
+
             "Frustrant.",
+
             WIDTH / 2,
+
             220
+
         );
 
 
         ctx.fillText(
+
             "Mais réessaye, promis la prochaine fois",
+
             WIDTH / 2,
+
             262
+
         );
 
 
         ctx.fillText(
+
             "ça devrait fonctionner !",
+
             WIDTH / 2,
+
             296
+
         );
 
 
@@ -1160,9 +2084,13 @@ function draw() {
 
 
         ctx.fillText(
+
             "Clique sur « Réessayer » pour recommencer.",
+
             WIDTH / 2,
+
             342
+
         );
 
 
@@ -1172,8 +2100,9 @@ function draw() {
     }
 
 
+
     /* =====================================================
-       GAME OVER NORMAL
+       GAME OVER
     ===================================================== */
 
     if (gameOver) {
@@ -1181,31 +2110,44 @@ function draw() {
         ctx.fillStyle =
             "rgba(255,255,255,0.90)";
 
+
         ctx.fillRect(
+
             WIDTH / 2 - 220,
+
             HEIGHT / 2 - 90,
+
             440,
+
             165
+
         );
 
 
         ctx.strokeStyle =
             "#222";
 
+
         ctx.lineWidth =
             4;
 
 
         ctx.strokeRect(
+
             WIDTH / 2 - 220,
+
             HEIGHT / 2 - 90,
+
             440,
+
             165
+
         );
 
 
         ctx.fillStyle =
             "#222";
+
 
         ctx.textAlign =
             "center";
@@ -1216,9 +2158,13 @@ function draw() {
 
 
         ctx.fillText(
+
             "Accroche toi petit hérisson",
+
             WIDTH / 2,
+
             HEIGHT / 2 - 28
+
         );
 
 
@@ -1227,10 +2173,15 @@ function draw() {
 
 
         ctx.fillText(
-            "Score : " +
+
+            "Score : "
+            +
             Math.floor(score),
+
             WIDTH / 2,
+
             HEIGHT / 2 + 12
+
         );
 
 
@@ -1239,9 +2190,13 @@ function draw() {
 
 
         ctx.fillText(
+
             "Clique sur « Recommencer » pour retenter ta chance.",
+
             WIDTH / 2,
+
             HEIGHT / 2 + 48
+
         );
 
 
@@ -1249,6 +2204,7 @@ function draw() {
             "left";
 
     }
+
 
 
     /* =====================================================
@@ -1260,31 +2216,44 @@ function draw() {
         ctx.fillStyle =
             "rgba(255,255,255,0.92)";
 
+
         ctx.fillRect(
+
             55,
+
             105,
+
             WIDTH - 110,
+
             275
+
         );
 
 
         ctx.strokeStyle =
             "#222";
 
+
         ctx.lineWidth =
             4;
 
 
         ctx.strokeRect(
+
             55,
+
             105,
+
             WIDTH - 110,
+
             275
+
         );
 
 
         ctx.fillStyle =
             "#222";
+
 
         ctx.textAlign =
             "center";
@@ -1295,9 +2264,13 @@ function draw() {
 
 
         ctx.fillText(
+
             "BRAVO !",
+
             WIDTH / 2,
+
             155
+
         );
 
 
@@ -1306,16 +2279,24 @@ function draw() {
 
 
         ctx.fillText(
+
             "T'as bien gagné un indice,",
+
             WIDTH / 2,
+
             205
+
         );
 
 
         ctx.fillText(
+
             "ostie de française...",
+
             WIDTH / 2,
+
             238
+
         );
 
 
@@ -1324,9 +2305,13 @@ function draw() {
 
 
         ctx.fillText(
+
             "Le mot indice est :",
+
             WIDTH / 2,
+
             285
+
         );
 
 
@@ -1335,9 +2320,13 @@ function draw() {
 
 
         ctx.fillText(
+
             "SERPENT",
+
             WIDTH / 2,
+
             330
+
         );
 
 
@@ -1346,9 +2335,13 @@ function draw() {
 
 
         ctx.fillText(
+
             "Bonne chance pour la suite !",
+
             WIDTH / 2,
+
             365
+
         );
 
 
@@ -1360,6 +2353,7 @@ function draw() {
 }
 
 
+
 /* =========================================================
    BOUCLE PRINCIPALE
 ========================================================= */
@@ -1369,14 +2363,20 @@ function gameLoop(timestamp) {
     if (!running) {
 
         draw();
+
         return;
 
     }
 
 
     let delta =
-        timestamp -
+
+        timestamp
+
+        -
+
         lastTime;
+
 
     lastTime =
         timestamp;
@@ -1386,12 +2386,14 @@ function gameLoop(timestamp) {
         delta > 50
     ) {
 
-        delta = 50;
+        delta =
+            50;
 
     }
 
 
     update(delta);
+
 
     draw();
 
@@ -1407,49 +2409,81 @@ function gameLoop(timestamp) {
 }
 
 
+
 /* =========================================================
    CONTROLES
 ========================================================= */
 
 startButton.addEventListener(
+
     "click",
+
     function() {
+
+        /*
+        On démarre immédiatement le jeu.
+        */
 
         startGame();
 
+
+        /*
+        Et sur mobile on tente le plein écran
+        + orientation paysage.
+        */
+
+        tryMobileFullscreen();
+
     }
+
 );
 
 
+
 document.addEventListener(
+
     "keydown",
+
     function(event) {
 
         if (
-            event.code === "Space" ||
+
+            event.code === "Space"
+
+            ||
+
             event.code === "ArrowUp"
+
         ) {
 
             event.preventDefault();
+
 
             jump();
 
         }
 
     }
+
 );
 
 
+
 canvas.addEventListener(
+
     "pointerdown",
+
     function(event) {
 
         event.preventDefault();
 
+
         jump();
 
     }
+
 );
+
 
 
 /* =========================================================
@@ -1458,32 +2492,43 @@ canvas.addEventListener(
 
 playerImage.onload =
 function() {
+
     draw();
+
 };
 
 
 backgroundImage.onload =
 function() {
+
     draw();
+
 };
 
 
 cauliflowerImage.onload =
 function() {
+
     draw();
+
 };
 
 
 soupImage.onload =
 function() {
+
     draw();
+
 };
 
 
 baconImage.onload =
 function() {
+
     draw();
+
 };
+
 
 
 playerImage.onerror =
@@ -1544,6 +2589,7 @@ function() {
     draw();
 
 };
+
 
 
 /* =========================================================
